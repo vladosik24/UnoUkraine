@@ -1,243 +1,102 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<title>УНО Україна</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>
-:root{--r:#d6342c;--y:#f5c400;--g:#2e9b4e;--b:#1f5fbf;--ink:#0b2a5b}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--ink);color:#fff;font-family:Georgia,"Times New Roman",serif;overflow:hidden;user-select:none}
-#app{height:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;padding:8px 8px calc(10px + env(safe-area-inset-bottom));background:radial-gradient(circle at 50% 40%,#14439a,var(--ink) 70%);position:relative}
-#ops{display:flex;justify-content:space-around;gap:6px;padding-top:env(safe-area-inset-top)}
-.op{text-align:center;font-size:13px;padding:6px 10px;border-radius:12px;border:2px solid transparent;min-width:84px}
-.op.on{border-color:var(--y);background:#ffffff14}
-.av{font-size:28px;line-height:1.1}
-.cnt{font-family:system-ui,sans-serif;font-size:12px;opacity:.85}
-#mid{flex:1;display:flex;align-items:center;justify-content:center;gap:22px;position:relative}
-#cdot{position:absolute;top:8px;left:50%;transform:translateX(-50%);font:600 13px system-ui,sans-serif;display:flex;align-items:center;gap:6px}
-#cdot i{width:16px;height:16px;border-radius:50%;border:2px solid #fff;background:var(--y)}
-#msg{min-height:40px;text-align:center;font-size:16px;padding:4px 8px;color:var(--y)}
-#hand{display:flex;overflow-x:auto;padding:18px 10px 6px;min-height:128px}
-#hand .card{margin-left:-14px}
-#hand .card:first-child{margin-left:0}
-#hand .card.can{transform:translateY(-12px);box-shadow:0 0 0 2px var(--y),0 4px 8px #0008}
-#hand .card.no{filter:brightness(.6)}
-.card{width:64px;height:96px;border-radius:10px;position:relative;border:3px solid #fff;color:#fff;flex:none;box-shadow:0 2px 6px #0007;display:flex;align-items:center;justify-content:center;font-weight:800;background:var(--bg)}
-.card.r{--bg:var(--r);--c:var(--r)}.card.y{--bg:var(--y);--c:#a87c00}.card.g{--bg:var(--g);--c:var(--g)}.card.b{--bg:var(--b);--c:var(--b)}
-.card.w{--c:#1a1a1a;background:conic-gradient(var(--r) 0 25%,var(--y) 0 50%,var(--g) 0 75%,var(--b) 0)}
-.card.back{--bg:#0e3a85}
-.card.big{width:78px;height:116px}
-.x{position:absolute;left:3px;right:3px;height:7px;background:linear-gradient(45deg,transparent 42%,#fffa 42% 58%,transparent 58%),linear-gradient(-45deg,transparent 42%,#fffa 42% 58%,transparent 58%);background-size:7px 7px}
-.x.t{top:3px}.x.bt{bottom:3px}
-.m{width:68%;height:54%;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--c);transform:rotate(-18deg)}
-.back .m{background:none;color:var(--y);font-size:17px;letter-spacing:1px}
-.k{position:absolute;top:12px;left:5px;font-size:11px;font-weight:700}
-.k.e{top:auto;left:auto;bottom:12px;right:5px;transform:rotate(180deg)}
-#draw{cursor:pointer;position:relative}
-#draw small{position:absolute;bottom:-18px;left:0;right:0;text-align:center;font:12px system-ui,sans-serif}
-button{font:600 16px Georgia,serif;border:0;border-radius:12px;padding:12px 20px;background:var(--y);color:var(--ink)}
-#pass{position:absolute;right:12px;bottom:calc(150px + env(safe-area-inset-bottom))}
-.ov{position:absolute;inset:0;background:#0b2a5bf2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px;z-index:5}
-.ov[hidden],#pass[hidden]{display:none}
-.ov h1{font-size:44px;margin:0;color:var(--y);letter-spacing:2px}
-.ov p{margin:0 0 6px;opacity:.9}
-.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-.sw{width:64px;height:64px;border-radius:50%;border:4px solid #fff;padding:0}
-.band{width:220px;height:14px;background:linear-gradient(45deg,transparent 42%,var(--y) 42% 58%,transparent 58%),linear-gradient(-45deg,transparent 42%,var(--y) 42% 58%,transparent 58%);background-size:14px 14px}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Уно 🇺🇦 — Міні-застосунок</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<div id="app">
-  <div id="ops"></div>
-  <div id="mid">
-    <div id="cdot"><i></i><span></span></div>
-    <div id="draw"></div>
-    <div id="top"></div>
-  </div>
-  <div id="msg"></div>
-  <button id="pass" hidden>Пас</button>
-  <div id="hand"></div>
-
-  <div id="setup" class="ov">
-    <div class="band"></div>
-    <h1>УНО</h1>
-    <p>Українська колода. Грай проти ботів.</p>
-    <div class="row">
-      <button onclick="nb=1;start()">1 бот</button>
-      <button onclick="nb=2;start()">2 боти</button>
-      <button onclick="nb=3;start()">3 боти</button>
+  <div id="app">
+    <!-- Екран старту -->
+    <div id="start-screen" class="screen">
+      <div class="logo">
+        <div class="flag">🇺🇦</div>
+        <h1>УНО</h1>
+        <p class="subtitle">українська версія з ботами</p>
+      </div>
+      <div class="menu">
+        <label>Кількість ботів:</label>
+        <div class="bot-select">
+          <button class="bot-btn active" data-bots="2">2</button>
+          <button class="bot-btn" data-bots="3">3</button>
+        </div>
+        <button id="start-btn" class="primary-btn">Почати гру</button>
+        <button id="rules-btn" class="secondary-btn">Правила</button>
+      </div>
+      <div class="footer">Зроблено для Telegram Mini Apps</div>
     </div>
-    <div class="band"></div>
-  </div>
 
-  <div id="picker" class="ov" hidden>
-    <p>Обери колір</p>
-    <div class="row">
-      <button class="sw" style="background:var(--r)" onclick="pickColor('r')"></button>
-      <button class="sw" style="background:var(--y)" onclick="pickColor('y')"></button>
-      <button class="sw" style="background:var(--g)" onclick="pickColor('g')"></button>
-      <button class="sw" style="background:var(--b)" onclick="pickColor('b')"></button>
+    <!-- Екран правил -->
+    <div id="rules-screen" class="screen hidden">
+      <h2>Правила Уно</h2>
+      <div class="rules-content">
+        <p><strong>Мета:</strong> позбутися всіх карт першим.</p>
+        <p><strong>Хід:</strong> клади карту того ж кольору або того ж значення. Якщо не можеш — бери з колоди.</p>
+        <ul>
+          <li><strong>Пропуск</strong> — наступний гравець пропускає хід</li>
+          <li><strong>Реверс</strong> — змінює напрямок гри</li>
+          <li><strong>+2</strong> — наступний бере 2 карти і пропускає</li>
+          <li><strong>Дика</strong> — обираєш колір</li>
+          <li><strong>+4</strong> — наступний бере 4 і ти обираєш колір</li>
+        </ul>
+        <p>Коли залишається 1 карта — обов’язково кричи <strong>«УНО!»</strong></p>
+      </div>
+      <button id="back-btn" class="primary-btn">Назад</button>
+    </div>
+
+    <!-- Ігровий екран -->
+    <div id="game-screen" class="screen hidden">
+      <header class="game-header">
+        <div class="direction" id="direction">→</div>
+        <div class="turn-info" id="turn-info">Твій хід</div>
+        <button id="uno-btn" class="uno-btn hidden">УНО!</button>
+      </header>
+
+      <!-- Супротивники -->
+      <div id="opponents" class="opponents"></div>
+
+      <!-- Центральна зона -->
+      <div class="center-area">
+        <div class="pile draw-pile" id="draw-pile" title="Взяти карту">
+          <div class="card back"></div>
+          <span id="deck-count">0</span>
+        </div>
+        <div class="pile discard-pile" id="discard-pile"></div>
+      </div>
+
+      <!-- Твоя рука -->
+      <div class="player-area">
+        <div class="player-label">Ти <span id="player-cards-count"></span></div>
+        <div id="player-hand" class="hand"></div>
+      </div>
+
+      <!-- Вибір кольору -->
+      <div id="color-picker" class="color-picker hidden">
+        <p>Обери колір:</p>
+        <div class="colors">
+          <button class="color-btn red" data-color="red"></button>
+          <button class="color-btn blue" data-color="blue"></button>
+          <button class="color-btn green" data-color="green"></button>
+          <button class="color-btn yellow" data-color="yellow"></button>
+        </div>
+      </div>
+
+      <!-- Повідомлення -->
+      <div id="message" class="message hidden"></div>
+    </div>
+
+    <!-- Екран кінця гри -->
+    <div id="end-screen" class="screen hidden">
+      <div class="end-content">
+        <h2 id="end-title">Перемога!</h2>
+        <p id="end-text"></p>
+        <button id="restart-btn" class="primary-btn">Грати знову</button>
+      </div>
     </div>
   </div>
 
-  <div id="end" class="ov" hidden>
-    <div class="band"></div>
-    <h1 id="endt"></h1>
-    <button onclick="start()">Грати ще</button>
-    <button onclick="document.getElementById('setup').hidden=false;this.parentNode.hidden=true">Змінити ботів</button>
-  </div>
-</div>
-
-<script>
-const tg=window.Telegram&&Telegram.WebApp;
-if(tg){tg.ready();tg.expand();try{tg.setHeaderColor('#0b2a5b');tg.setBackgroundColor('#0b2a5b')}catch(e){}}
-const hap=()=>{try{tg.HapticFeedback.impactOccurred('light')}catch(e){}};
-const $=id=>document.getElementById(id);
-const COL=['r','y','g','b'],CN={r:'червоний',y:'жовтий',g:'зелений',b:'синій'},HEX={r:'#d6342c',y:'#f5c400',g:'#2e9b4e',b:'#1f5fbf'};
-const SYM={S:'⊘',R:'⇄',D:'+2',W:'🔱',F:'+4'};
-let deck,disc,P,cur,dir,color,busy,drawn,nb=2,pend=null;
-
-const topC=()=>disc[disc.length-1];
-const nxt=(i,s=1)=>((i+dir*s)%P.length+P.length)%P.length;
-const ok=c=>c.c==='w'||c.c===color||c.v===topC().v;
-const label=c=>(c.c==='w'?'':CN[c.c]+' ')+(SYM[c.v]||c.v);
-const msg=t=>$('msg').textContent=t;
-function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
-
-function build(){
-  const d=[];
-  COL.forEach(c=>{
-    d.push({c,v:'0'});
-    for(let i=0;i<2;i++){
-      for(let n=1;n<=9;n++)d.push({c,v:''+n});
-      ['S','R','D'].forEach(v=>d.push({c,v}));
-    }
-  });
-  for(let i=0;i<4;i++)d.push({c:'w',v:'W'},{c:'w',v:'F'});
-  return shuf(d);
-}
-function take(n){
-  const r=[];
-  while(n--){
-    if(!deck.length){const t=disc.pop();deck=shuf(disc);disc=[t];if(!deck.length)break}
-    r.push(deck.pop());
-  }
-  return r;
-}
-
-function start(){
-  deck=build();
-  const names=['Богдан','Оксана','Тарас'],av=['🦅','🐺','🦊'];
-  P=[{n:'Ти',a:'🧑',h:[],bot:0}];
-  for(let i=0;i<nb;i++)P.push({n:names[i],a:av[i],h:[],bot:1});
-  P.forEach(p=>p.h=take(7));
-  const k=deck.findIndex(c=>/\d/.test(c.v));
-  disc=[deck.splice(k,1)[0]];
-  color=topC().c;cur=0;dir=1;busy=false;drawn=false;
-  ['setup','end','picker'].forEach(i=>$(i).hidden=true);
-  turn();
-}
-
-function cardH(c,cls=''){
-  const s=SYM[c.v]||c.v;
-  return `<div class="card ${c.c} ${cls}"><i class="x t"></i><b class="k">${s}</b><span class="m">${s}</span><b class="k e">${s}</b><i class="x bt"></i></div>`;
-}
-
-function render(){
-  $('ops').innerHTML=P.slice(1).map((p,i)=>`<div class="op ${cur===i+1?'on':''}"><div class="av">${p.a}</div>${p.n}<div class="cnt">🃏 ${p.h.length}</div></div>`).join('');
-  $('draw').innerHTML=`<div class="card back big"><i class="x t"></i><span class="m">УНО</span><i class="x bt"></i></div><small>${deck.length}</small>`;
-  $('top').innerHTML=cardH(topC(),'big');
-  $('cdot').innerHTML=`<i style="background:${HEX[color]}"></i><span>${CN[color]} ${dir>0?'↻':'↺'}</span>`;
-  const mine=cur===0&&!busy,h=P[0].h;
-  $('hand').innerHTML=h.map((c,i)=>{
-    const can=mine&&ok(c)&&(!drawn||i===h.length-1);
-    return cardH(c,can?'can':'no').replace('<div class="card','<div data-i="'+i+'" class="card');
-  }).join('');
-  $('pass').hidden=!(mine&&drawn);
-}
-
-function turn(){
-  const p=P[cur];
-  if(p.bot){busy=true;render();setTimeout(bot,1000)}
-  else{busy=false;drawn=false;msg('Твій хід');render()}
-}
-
-function pickColorFor(p){
-  const n={r:0,y:0,g:0,b:0};
-  p.h.forEach(c=>{if(c.c!=='w')n[c.c]++});
-  return [...COL].sort((a,b)=>n[b]-n[a])[0];
-}
-
-function bot(){
-  const p=P[cur];
-  let pl=p.h.map((c,i)=>[c,i]).filter(x=>ok(x[0]));
-  if(!pl.length){
-    const c=take(1);
-    if(c.length){
-      p.h.push(c[0]);msg(p.n+' бере карту');render();
-      if(ok(c[0]))return setTimeout(()=>act(cur,p.h.length-1,pickColorFor(p)),800);
-    }
-    return setTimeout(()=>{msg(p.n+' пасує');cur=nxt(cur);turn()},700);
-  }
-  const nh=P[nxt(cur)].h.length;
-  const score=c=>{
-    let s=Math.random();
-    if(c.c==='w')s-=5;
-    else if(['S','R','D'].includes(c.v))s+=nh<=2?5:1;
-    else s+=(+c.v)/10;
-    return s;
-  };
-  pl.sort((a,b)=>score(b[0])-score(a[0]));
-  act(cur,pl[0][1],pickColorFor(p));
-}
-
-function act(pi,ci,col){
-  busy=true;
-  const p=P[pi],c=p.h.splice(ci,1)[0];
-  disc.push(c);
-  color=c.c==='w'?col:c.c;
-  hap();
-  let m=p.n+': '+label(c),skip=0,dr=0;
-  if(c.v==='S')skip=1;
-  if(c.v==='R'){dir*=-1;if(P.length===2)skip=1}
-  if(c.v==='D')dr=2;
-  if(c.v==='F')dr=4;
-  if(c.c==='w')m+=' → '+CN[color];
-  if(p.h.length===1)m+=' · УНО!';
-  if(!p.h.length){render();return finish(p)}
-  let t=nxt(pi);
-  if(dr){const v=P[t];v.h.push(...take(dr));m+=` · ${v.n} бере ${dr}`;t=nxt(t)}
-  else if(skip)t=nxt(t);
-  msg(m);cur=t;render();
-  setTimeout(turn,1000);
-}
-
-function finish(p){
-  $('endt').textContent=p.bot?p.n+' перемагає':'Перемога! 🇺🇦';
-  setTimeout(()=>$('end').hidden=false,600);
-}
-
-$('hand').onclick=e=>{
-  const el=e.target.closest('.card');
-  if(!el||busy||cur!==0)return;
-  const i=+el.dataset.i,h=P[0].h,c=h[i];
-  if(!ok(c)||(drawn&&i!==h.length-1))return;
-  if(c.c==='w'){pend=i;$('picker').hidden=false}
-  else act(0,i);
-};
-function pickColor(c){$('picker').hidden=true;act(0,pend,c)}
-
-$('draw').onclick=()=>{
-  if(busy||cur!==0||drawn)return;
-  const c=take(1);
-  if(!c.length){busy=true;cur=nxt(0);return turn()}
-  P[0].h.push(c[0]);drawn=true;hap();
-  if(ok(c[0])){msg('Зіграй цю карту або пас');render()}
-  else{msg('Не підходить — пас');busy=true;render();setTimeout(()=>{cur=nxt(0);turn()},900)}
-};
-$('pass').onclick=()=>{if(busy||cur!==0)return;busy=true;cur=nxt(0);turn()};
-</script>
+  <script src="game.js"></script>
 </body>
 </html>
