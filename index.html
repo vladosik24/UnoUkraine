@@ -27,14 +27,8 @@ html,body{margin:0;height:100%;background:var(--ink);color:#fff;font-family:Geor
 #mid{flex:1;display:flex;align-items:center;justify-content:center;gap:24px;position:relative;margin:4px 14px;border-radius:50%/40%;background:radial-gradient(ellipse,#2570d8 0,#164aa6 55%,transparent 72%)}
 #cdot{position:absolute;top:2px;left:50%;transform:translateX(-50%);font:600 13px system-ui,sans-serif;display:flex;align-items:center;gap:6px}
 #cdot i{width:18px;height:18px;border-radius:50%;border:2px solid #fff}
-#stack{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:4;font:900 42px Georgia,serif;color:#fff;text-shadow:0 0 20px var(--r),0 4px 0 #000;pointer-events:none;display:none;animation:pulse .8s infinite}
-#stack.on{display:block}
-#hist{position:absolute;bottom:calc(140px + env(safe-area-inset-bottom));left:8px;right:8px;max-height:52px;overflow:hidden;font:12px system-ui,sans-serif;opacity:.75;text-align:center;pointer-events:none;z-index:2}
-#hist span{display:block;animation:pop .3s}
 #msg{min-height:38px;text-align:center;font-size:15px;padding:2px 10px;color:var(--y)}
 #hint{min-height:20px;text-align:center;font:700 14px system-ui,sans-serif;color:#fff}
-.fly{position:fixed;z-index:50;pointer-events:none;transition:transform .45s cubic-bezier(.2,.8,.3,1),opacity .45s;opacity:1}
-.fly.gone{opacity:0;transform:scale(.4)!important}
 #hand{display:flex;overflow-x:auto;padding:18px 12px 8px;min-height:130px}
 #hand .card{margin-left:-14px;transition:transform .15s}
 #hand .card:first-child{margin-left:0}
@@ -60,11 +54,6 @@ button:active{transform:translateY(2px);box-shadow:0 1px 0 #a87c00}
 button.sec{background:transparent;color:#fff;box-shadow:inset 0 0 0 2px #fff8}
 #pass{position:absolute;left:12px;bottom:calc(172px + env(safe-area-inset-bottom))}
 #uno{position:absolute;right:10px;bottom:calc(160px + env(safe-area-inset-bottom));width:88px;height:88px;border-radius:50%;background:var(--r);color:#fff;font-size:21px;padding:0;border:4px solid #fff;animation:pulse .8s infinite;z-index:3;box-shadow:0 0 20px var(--r)}
-#surr{position:absolute;left:12px;bottom:calc(230px + env(safe-area-inset-bottom));padding:8px 14px;font-size:13px;border-radius:12px;background:transparent;color:#ffb3ae;box-shadow:inset 0 0 0 2px #ffb3ae88;z-index:3}
-#inv{margin-top:4px}
-.ach-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
-.ach{background:#ffffff1a;border:1px solid #fff3;border-radius:12px;padding:6px 10px;font:12px system-ui,sans-serif}
-.ach.got{border-color:var(--y);color:var(--y)}
 .ov{position:absolute;inset:0;background:radial-gradient(circle at 50% 35%,#1a56b8f5,#0b2a5bfa 80%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px;z-index:5;overflow:auto}
 [hidden]{display:none!important}
 h1{font-size:76px;margin:0;line-height:1;letter-spacing:6px;background:linear-gradient(180deg,#3d8bff 0 50%,var(--y) 50%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #0006)}
@@ -126,21 +115,19 @@ body[data-sk="1"]{--bk:#7a1010}body[data-sk="2"]{--bk:#14532d}body[data-sk="3"]{
   <div class="wrap">
     <div id="hd"><span id="dir">↻</span><span id="turn"></span><button id="snd">🔊</button></div>
     <div id="ops"></div>
-    <div id="mid"><div id="cdot"></div><div id="stack"></div><div id="draw"></div><div id="top"></div></div>
+    <div id="mid"><div id="cdot"></div><div id="draw"></div><div id="top"></div></div>
     <div id="msg"></div>
     <div id="hint"></div>
-    <div id="hist"></div>
     <div id="hand"></div>
   </div>
   <div class="band bt"></div>
   <button id="pass" hidden>Пас</button>
-  <button id="surr" hidden>Здатися</button>
   <button id="uno" hidden>УНО!</button>
   <button id="cbtn" hidden>💬<i id="cbd" hidden></i></button>
   <div id="ctoast" hidden></div>
   <div id="chat" hidden>
     <div id="clog"></div>
-    <div id="cq"><button>😂</button><button>👍</button><button>🔥</button><button>😡</button><button>😭</button><button>🇺🇦</button><button>💀</button><button>😎</button><button>🤡</button><button>УНО!</button></div>
+    <div id="cq"><button>😂</button><button>👍</button><button>🔥</button><button>😡</button><button>😭</button><button>УНО!</button></div>
     <div style="display:flex;gap:6px;padding:8px"><input id="cin" maxlength="120" placeholder="Повідомлення…" autocomplete="off"><button id="csend">➤</button></div>
   </div>
 
@@ -192,7 +179,6 @@ body[data-sk="1"]{--bk:#7a1010}body[data-sk="2"]{--bk:#14532d}body[data-sk="3"]{
     <p class="sub">Код кімнати</p>
     <div id="code"></div>
     <p class="sub" style="font-size:14px">Назви друзям цей код — вони введуть його в «Приєднатись»</p>
-    <button id="inv" style="font-size:15px;padding:10px 20px;background:var(--b);color:#fff;box-shadow:0 3px 0 #123c7a">📤 Запросити друга</button>
     <div id="plist"></div>
     <div id="hostc">
       <p class="sub">Додати ботів</p>
@@ -220,8 +206,6 @@ body[data-sk="1"]{--bk:#7a1010}body[data-sk="2"]{--bk:#14532d}body[data-sk="3"]{
   <div id="end" class="ov" hidden>
     <div style="font-size:60px" id="emo">🏆</div>
     <h2 id="endt"></h2>
-    <div id="endstats" class="sub" style="font-size:14px"></div>
-    <div class="ach-row" id="achrow"></div>
     <button id="again">Грати знову</button>
     <p id="wait" class="sub" hidden>Хост може почати нову гру</p>
     <button class="sec" onclick="leave()">Меню</button>
@@ -240,20 +224,8 @@ body[data-sk="1"]{--bk:#7a1010}body[data-sk="2"]{--bk:#14532d}body[data-sk="3"]{
 <script>
 const tg=window.Telegram&&Telegram.WebApp;
 if(tg){tg.ready();tg.expand();try{tg.setHeaderColor('#0a2250');tg.setBackgroundColor('#0b2a5b')}catch(e){}}
-const hap=(t='light')=>{try{tg.HapticFeedback.impactOccurred(t)}catch(e){}};
-const hapN=(t='success')=>{try{tg.HapticFeedback.notificationOccurred(t)}catch(e){}};
+const hap=()=>{try{tg.HapticFeedback.impactOccurred('light')}catch(e){}};
 const $=id=>document.getElementById(id);
-let histLog=[];
-function addHist(t){histLog.unshift(t);if(histLog.length>4)histLog.pop();const h=$('hist');if(h)h.innerHTML=histLog.map(x=>'<span>'+esc(x)+'</span>').join('')}
-function flyCard(fromEl,toEl,card){
-  if(!fromEl||!toEl)return;
-  const a=fromEl.getBoundingClientRect(),b=toEl.getBoundingClientRect();
-  const d=document.createElement('div');d.className='card '+card.c+' fly';d.style.cssText=`left:${a.left}px;top:${a.top}px;width:${a.width}px;height:${a.height}px`;
-  d.innerHTML=`<i class="x t"></i><b class="k">${SYM[card.v]||card.v}</b><span class="m">${SYM[card.v]||card.v}</span><b class="k e">${SYM[card.v]||card.v}</b><i class="x bt"></i>`;
-  document.body.appendChild(d);
-  requestAnimationFrame(()=>{d.style.transform=`translate(${b.left-a.left+(b.width-a.width)/2}px,${b.top-a.top+(b.height-a.height)/2}px) scale(.9)`;d.classList.add('gone')});
-  setTimeout(()=>d.remove(),500);
-}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const COL=['r','y','g','b'],CN={r:'червоний',y:'жовтий',g:'зелений',b:'синій'},HEX={r:'#d6342c',y:'#f5c400',g:'#2e9b4e',b:'#1f5fbf'};
 const SYM={S:'⊘',R:'⇄',D:'+2',W:'🔱',F:'+4'};
@@ -330,7 +302,6 @@ function startGame(){
   disc=[deck.splice(k,1)[0]];
   color=topC().c;cur=0;dir=1;busy=false;drawn=false;over=null;playing=true;pd=0;if(role==='host')closeRoom();
   msgT='Гра почалась! Клади карту того ж кольору чи значення';
-  histLog=[];addHist('🃏 Нова гра');
   lastV=null;hideOv();turn();
 }
 function view(i){
@@ -386,33 +357,31 @@ function act(pi,ci,col){
   const p=P[pi],c=p.h.splice(ci,1)[0];
   disc.push(c);
   color=c.c==='w'?col:c.c;
-  hap('medium');
-  if(['S','R','D','F','W'].includes(c.v))hap('heavy');
+  hap();
   let m=p.n+': '+label(c),skip=0,dr=0;
   if(c.v==='S')skip=1;
   if(c.v==='R'){dir*=-1;if(P.length===2)skip=1}
   if(c.v==='D')dr=2;
   if(c.v==='F')dr=4;
   if(c.c==='w')m+=' → '+CN[color];
-  addHist(m);
   if(p.h.length===1){
-    if(p.called||p.bot){p.called=true;m+=' · УНО!';SFX.uno();hapN('success')}
+    if(p.called||p.bot){p.called=true;m+=' · УНО!'}
     else{
       m+=' · натисни УНО!';
       setTimeout(()=>{
-        if(!p.called&&p.h.length===1&&over==null){p.h.push(...take(mode===2?4:2));msgT=p.n+' забув УНО! +'+(mode===2?4:2);addHist(msgT);SFX.pen();hapN('error');push()}
+        if(!p.called&&p.h.length===1&&over==null){p.h.push(...take(mode===2?4:2));msgT=p.n+' забув УНО! +'+(mode===2?4:2);push()}
       },3000);
     }
   }
   if(!p.h.length){over=pi;msgT=m;push();return}
   let t=nxt(pi);
-  if(dr){pd+=dr;m+=` · стек +${pd}`;const v=P[t];if(!v.h.some(okc)){v.h.push(...take(pd));v.called=false;m+=` · ${v.n} бере ${pd}`;addHist(v.n+' бере '+pd);pd=0;t=nxt(t)}}
+  if(dr){pd+=dr;m+=` · +${pd}`;const v=P[t];if(!v.h.some(okc)){v.h.push(...take(pd));v.called=false;m+=` · ${v.n} бере ${pd}`;pd=0;t=nxt(t)}}
   else if(skip)t=nxt(t);
   msgT=m;cur=t;push();
   setTimeout(turn,1000);
 }
 function forceDraw(pi){
-  const v=P[pi];v.h.push(...take(pd));v.called=false;msgT=v.n+' бере '+pd;addHist(msgT);pd=0;busy=true;hap('medium');SFX.draw();push();
+  const v=P[pi];v.h.push(...take(pd));v.called=false;msgT=v.n+' бере '+pd;pd=0;busy=true;hap();push();
   setTimeout(()=>{cur=nxt(pi);turn()},900);
 }
 function handle(pi,a){
@@ -467,18 +436,8 @@ function render(v){
   $('hand').innerHTML=v.hand.map((c,i)=>cardH(c,v.can[i]?'can':'no').replace('<div class="card','<div data-i="'+i+'" class="card')).join('');
   $('pass').hidden=!v.drawn;
   $('uno').hidden=!v.uno;
-  const surrEl=$('surr');if(surrEl)surrEl.hidden=!(!v.over&&v.cur===v.me&&role!=='guest');
-  const stEl=$('stack');
-  if(stEl){if(pd>0){stEl.textContent='+'+pd;stEl.classList.add('on')}else stEl.classList.remove('on')}
   const e=v.over;
-  if(e&&!counted){
-    counted=true;
-    if(e.w===v.me){SFX.win();confetti();hapN('success')}else{SFX.lose();hapN('error')}
-    const st=stat();st.g++;if(e.w===v.me)st.w++;
-    if(e.w===v.me){st.uno=(st.uno||0)+(v.P[v.me]?1:0);st.maxWin=(st.maxWin||0)+1}
-    try{localStorage.setItem('unost',JSON.stringify(st))}catch(x){}
-    showEndStats(v,e);
-  }
+  if(e&&!counted){counted=true;if(e.w===v.me){SFX.win();confetti()}else SFX.lose();const st=stat();st.g++;if(e.w===v.me)st.w++;try{localStorage.setItem('unost',JSON.stringify(st))}catch(x){}}
   if(!e)counted=false;
   $('end').hidden=!e;
   if(e){
@@ -489,20 +448,6 @@ function render(v){
     $('wait').hidden=role!=='guest';
   }
   fx(pv,v);chatUI();
-}
-function showEndStats(v,e){
-  const st=stat();
-  const el=$('endstats');if(el)el.innerHTML=`Ігор: ${st.g} · Перемог: ${st.w} · Win rate: ${st.g?Math.round(st.w/st.g*100):0}%`;
-  const row=$('achrow');if(!row)return;
-  const achs=[
-    {id:'first',t:'🥉 Перша перемога',ok:st.w>=1},
-    {id:'ten',t:'🥈 10 перемог',ok:st.w>=10},
-    {id:'fifty',t:'🥇 50 перемог',ok:st.w>=50},
-    {id:'g25',t:'🎮 25 ігор',ok:st.g>=25},
-    {id:'g100',t:'💯 100 ігор',ok:st.g>=100},
-    {id:'uno',t:'📢 Майстер УНО',ok:(st.uno||0)>=5}
-  ];
-  row.innerHTML=achs.map(a=>`<div class="ach ${a.ok?'got':''}">${a.t}</div>`).join('');
 }
 function send(a){
   if(role==='guest'){if(conn&&conn.open)conn.send({t:'a',a})}
@@ -520,21 +465,7 @@ function pickColor(c){$('picker').hidden=true;send({t:'play',i:pend,c})}
 $('draw').onclick=()=>drawTry();
 function drawTry(){if(lastV&&lastV.cur===lastV.me&&!lastV.drawn&&!lastV.over)send({t:'draw'})}
 $('pass').onclick=()=>send({t:'pass'});
-$('uno').onclick=()=>{hap('heavy');hapN('success');SFX.uno();send({t:'uno'})};
-$('surr').onclick=()=>{
-  if(!confirm('Здатися і вийти в меню?'))return;
-  leave();
-};
-$('inv').onclick=()=>{
-  const txt=`🃏 Грай зі мною в УНО! Код кімнати: ${code}\nhttps://t.me/UnoUkraineBot`;
-  if(tg&&tg.openTelegramLink){
-    tg.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent('https://t.me/UnoUkraineBot')+'&text='+encodeURIComponent(txt));
-  }else if(navigator.share){
-    navigator.share({title:'УНО 🇺🇦',text:txt}).catch(()=>{});
-  }else{
-    try{navigator.clipboard.writeText(txt);alert('Код скопійовано: '+code)}catch(e){alert('Код кімнати: '+code)}
-  }
-};
+$('uno').onclick=()=>{hap();send({t:'uno'})};
 
 document.querySelectorAll('.bb[data-n]').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.bb[data-n]').forEach(x=>x.classList.remove('on'));
