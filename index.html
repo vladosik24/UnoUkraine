@@ -67,7 +67,16 @@ h2{margin:0;color:var(--y);font-size:30px}
 .rules p{margin:6px 0}.rules ul{margin:6px 0;padding-left:20px}
 input{font:700 28px Georgia,serif;text-align:center;letter-spacing:6px;width:200px;padding:10px;border-radius:12px;border:3px solid var(--y);background:#0a2250;color:#fff;text-transform:uppercase;user-select:text}
 #code{font-size:52px;font-weight:800;letter-spacing:8px;color:var(--y)}
-.pl{padding:8px 16px;border-radius:12px;background:#ffffff1a;min-width:200px}
+.pl{display:flex;align-items:center;gap:10px;text-align:left;width:270px;padding:6px 10px;border-radius:14px;background:#ffffff1a;cursor:pointer}
+.pl b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.avc{width:46px;height:46px;border-radius:50%;background:#ffffff22;display:flex;align-items:center;justify-content:center;font-size:26px;overflow:hidden;flex:none;border:2px solid var(--y)}
+.avc.big{width:100px;height:100px;font-size:58px}
+.op .avc{width:40px;height:40px;margin:0 auto;font-size:22px}
+.ph{width:100%;height:100%;object-fit:cover}
+.kick{padding:6px 11px;border-radius:10px;background:var(--r);color:#fff;box-shadow:none;font-size:14px}
+.tag{font:11px system-ui,sans-serif;color:var(--y)}
+#plist{display:flex;flex-direction:column;gap:8px;align-items:center}
+#prof{z-index:8}
 .err{color:#ffb3ae;min-height:20px;font:14px system-ui,sans-serif}
 @keyframes land{from{transform:scale(1.6) rotate(25deg);opacity:0}to{transform:none;opacity:1}}
 @keyframes glow{50%{box-shadow:0 0 14px var(--y)}}
@@ -130,7 +139,7 @@ input{font:700 28px Georgia,serif;text-align:center;letter-spacing:6px;width:200
   <div id="lobby" class="ov" hidden>
     <p class="sub">Код кімнати</p>
     <div id="code"></div>
-    <button id="share">📨 Запросити друзів</button>
+    <p class="sub" style="font-size:14px">Назви друзям цей код — вони введуть його в «Приєднатись»</p>
     <div id="plist"></div>
     <div id="hostc">
       <p class="sub">Додати ботів</p>
@@ -159,6 +168,15 @@ input{font:700 28px Georgia,serif;text-align:center;letter-spacing:6px;width:200
     <p id="wait" class="sub" hidden>Хост може почати нову гру</p>
     <button class="sec" onclick="leave()">Меню</button>
   </div>
+
+  <div id="prof" class="ov" hidden>
+    <div id="pav"></div>
+    <h2 id="pn"></h2>
+    <div id="pu" class="sub"></div>
+    <div id="ps" class="sub"></div>
+    <button id="ptg" hidden>Відкрити в Telegram</button>
+    <button class="sec" onclick="$('prof').hidden=true">Закрити</button>
+  </div>
 </div>
 
 <script>
@@ -171,9 +189,9 @@ const COL=['r','y','g','b'],CN={r:'червоний',y:'жовтий',g:'зел�
 const SYM={S:'⊘',R:'⇄',D:'+2',W:'🔱',F:'+4'};
 const AV=['🦅','🐺','🦊','🐻','🦌','🐝'];
 let deck,disc,P,cur,dir,color,busy,drawn,over=null,msgT='';
-let role='solo',peer=null,conn=null,R=[],lb=2,nb=2,code='',pend,lastV,tk='',playing=false;
+let role='solo',peer=null,conn=null,R=[],lb=2,nb=2,code='',pend,lastV,tk='',playing=false,counted=false,lobbyList=[],ME=null;
 
-const hideOv=()=>document.querySelectorAll('.ov').forEach(o=>o.hidden=true);
+const hideOv=()=>document.querySelectorAll('.ov:not(#prof)').forEach(o=>o.hidden=true);
 const topC=()=>disc[disc.length-1];
 const nxt=(i,s=1)=>((i+dir*s)%P.length+P.length)%P.length;
 const ok=c=>c.c==='w'||c.c===color||c.v===topC().v;
@@ -204,8 +222,8 @@ function take(n){
 function startGame(){
   const bn=['Богдан','Оксана','Тарас'],ba=['🦌','🐺','🦊'];
   deck=build();
-  P=R.map(r=>({n:r.n,a:r.a,bot:0,conn:r.conn,h:[],called:false}));
-  for(let i=0;i<lb;i++)P.push({n:bn[i],a:ba[i],bot:1,conn:null,h:[],called:false});
+  P=R.map(r=>({n:r.n,a:r.a,ph:r.ph||'',u:r.u||'',g:r.g||0,w:r.w||0,bot:0,conn:r.conn,h:[],called:false}));
+  for(let i=0;i<lb;i++)P.push({n:bn[i],a:ba[i],ph:'',u:'',g:0,w:0,bot:1,conn:null,h:[],called:false});
   P.forEach(p=>p.h=take(7));
   const k=deck.findIndex(c=>/\d/.test(c.v));
   disc=[deck.splice(k,1)[0]];
@@ -216,7 +234,7 @@ function startGame(){
 function view(i){
   const p=P[i],h=p.h,mine=cur===i&&!busy&&over==null;
   return{me:i,hand:h,can:h.map((c,k)=>mine&&ok(c)&&(!drawn||k===h.length-1)),
-    P:P.map(q=>({n:q.n,a:q.a,c:q.h.length})),top:topC(),color,dir,cur,deckN:deck.length,msg:msgT,
+    P:P.map(q=>({n:q.n,a:q.a,ph:q.ph,u:q.u,g:q.g,w:q.w,bot:q.bot,c:q.h.length})),top:topC(),color,dir,cur,deckN:deck.length,msg:msgT,
     drawn:mine&&drawn,uno:h.length>0&&h.length<=2&&!p.called&&over==null,over:over==null?null:{w:over},
     hint:over!=null?'':h.length===1&&!p.called?'⚡ Швидко натисни УНО!':h.length===2&&!p.called?'Лишилось 2 карти — натисни УНО!':''};
 }
@@ -321,7 +339,7 @@ function render(v){
   let o='';
   for(let k=1;k<v.P.length;k++){
     const j=(v.me+k)%v.P.length,q=v.P[j];
-    o+=`<div class="op ${v.cur===j?'on':''}"><div class="av">${q.a}</div>${esc(q.n)}<div class="mbs">${'<i class="mb"></i>'.repeat(Math.min(q.c,8))}</div><div class="cnt">${q.c} карт</div></div>`;
+    o+=`<div data-j="${j}" class="op ${v.cur===j?'on':''}">${avH(q)}${esc(q.n)}<div class="mbs">${'<i class="mb"></i>'.repeat(Math.min(q.c,8))}</div><div class="cnt">${q.c} карт</div></div>`;
   }
   $('ops').innerHTML=o;
   $('draw').innerHTML=`<div class="card back big"><i class="x t"></i><span class="m">УНО</span><i class="x bt"></i></div><small>${v.deckN}</small>`;
@@ -336,6 +354,8 @@ function render(v){
   $('pass').hidden=!v.drawn;
   $('uno').hidden=!v.uno;
   const e=v.over;
+  if(e&&!counted){counted=true;const st=stat();st.g++;if(e.w===v.me)st.w++;try{localStorage.setItem('unost',JSON.stringify(st))}catch(x){}}
+  if(!e)counted=false;
   $('end').hidden=!e;
   if(e){
     const w=e.w===v.me;
@@ -367,15 +387,31 @@ document.querySelectorAll('.bb[data-n]').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.bb[data-n]').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');nb=+b.dataset.n;
 });
-$('go').onclick=()=>{role='solo';R=[{n:'Ти',a:'🧑',conn:null}];lb=nb;startGame()};
+$('go').onclick=()=>{role='solo';R=[{...san(me()),n:'Ти',conn:null}];lb=nb;startGame()};
 $('again').onclick=()=>startGame();
 
 /* ---------- ОНЛАЙН (PeerJS) ---------- */
-const myName=()=>{const u=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user;return u&&u.first_name?u.first_name:'Гравець'+(Math.random()*90+10|0)};
+const avH=(q,cls='')=>`<div class="avc ${cls}">${q.ph?`<img class="ph" src="${esc(q.ph)}" onerror="this.outerHTML='${q.a}'">`:esc(q.a)}</div>`;
+const san=d=>({n:String(d.n||'Гравець').slice(0,14),a:AV.includes(d.a)?d.a:'🧑',ph:/^https:\/\/t\.me\/i\/userpic\//.test(d.ph||'')?String(d.ph).slice(0,200):'',u:/^[A-Za-z0-9_]{3,32}$/.test(d.u||'')?d.u:'',g:Math.max(0,(+d.g)|0),w:Math.max(0,(+d.w)|0)});
+function stat(){try{return JSON.parse(localStorage.getItem('unost'))||{g:0,w:0}}catch(e){return{g:0,w:0}}}
+function me(){
+  if(!ME){const u=(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user)||{};ME={n:u.first_name||'Гравець'+(Math.random()*90+10|0),a:AV[Math.random()*AV.length|0],ph:u.photo_url||'',u:u.username||''}}
+  const st=stat();ME.g=st.g;ME.w=st.w;return ME;
+}
+function showProf(q){
+  if(!q)return;
+  $('pav').innerHTML=avH(q,'big');$('pn').textContent=q.n;
+  $('pu').textContent=q.bot?'🤖 Бот':q.u?'@'+q.u:'Telegram-нік не вказано';
+  $('ps').textContent=q.bot?'':'Ігор: '+(q.g||0)+' · Перемог: '+(q.w||0);
+  $('ptg').hidden=!q.u;
+  $('ptg').onclick=()=>{const l='https://t.me/'+q.u;if(tg&&tg.openTelegramLink)tg.openTelegramLink(l);else window.open(l,'_blank')};
+  $('prof').hidden=false;
+}
+$('ops').onclick=e=>{const el=e.target.closest('.op');if(el&&lastV)showProf(lastV.P[+el.dataset.j])};
 const rc=()=>{const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<5;i++)s+=A[Math.random()*A.length|0];return s};
 function leave(){
   playing=false;try{peer&&peer.destroy()}catch(e){}
-  peer=conn=null;role='solo';P=null;hideOv();$('setup').hidden=false;
+  peer=conn=null;role='solo';P=null;hideOv();$('prof').hidden=true;$('setup').hidden=false;
 }
 function netErr(t){
   try{peer&&peer.destroy()}catch(e){}
@@ -387,7 +423,7 @@ function mkRoom(){
   if(typeof Peer==='undefined')return netErr('Не вдалося завантажити PeerJS. Перевір інтернет.');
   role='host';code=rc();
   peer=new Peer('unoua-'+code);
-  peer.on('open',()=>{R=[{n:myName(),a:'🧑',conn:null}];lb=0;lobbyPush()});
+  peer.on('open',()=>{R=[{...san(me()),conn:null}];lb=0;lobbyPush()});
   peer.on('error',e=>{
     if(e.type==='unavailable-id'){try{peer.destroy()}catch(x){}mkRoom()}
     else netErr('Помилка мережі: '+e.type);
@@ -403,7 +439,7 @@ function hostData(c,d){
   if(d.t==='join'){
     if(playing){c.send({t:'err',m:'Гра вже почалась'});return}
     if(R.length>=4){c.send({t:'err',m:'Кімната заповнена'});return}
-    R.push({n:String(d.n||'Гравець').slice(0,14),a:AV.includes(d.a)?d.a:'🧑',conn:c});
+    R.push({...san(d),conn:c});
     lb=Math.min(lb,4-R.length);lobbyPush();
   }else if(d.t==='a'&&P){
     const i=P.findIndex(p=>p.conn===c);
@@ -411,17 +447,30 @@ function hostData(c,d){
   }
 }
 function lobbyPush(){
-  const d={t:'lobby',code,names:R.map(r=>r.n),nb:lb};
+  const d={t:'lobby',code,list:R.map(r=>({n:r.n,a:r.a,ph:r.ph,u:r.u,g:r.g,w:r.w})),nb:lb};
   R.forEach(r=>{if(r.conn&&r.conn.open)r.conn.send(d)});
   renderLobby(d);
 }
 function renderLobby(d){
-  hideOv();$('lobby').hidden=false;
+  hideOv();$('lobby').hidden=false;lobbyList=d.list;
   $('code').textContent=d.code;
-  $('plist').innerHTML=d.names.map(n=>`<div class="pl">👤 ${esc(n)}</div>`).join('')+(d.nb?`<div class="pl">🤖 Ботів: ${d.nb}</div>`:'');
+  $('plist').innerHTML=d.list.map((q,i)=>`<div class="pl" data-i="${i}">${avH(q)}<b>${esc(q.n)}${i===0?' <span class="tag">👑 хост</span>':''}</b>${role==='host'&&i>0?'<button class="kick">✕</button>':''}</div>`).join('')+(d.nb?`<div class="pl" style="cursor:default"><div class="avc">🤖</div><b>Ботів: ${d.nb}</b></div>`:'');
   $('nb').textContent=d.nb;
   $('hostc').hidden=role!=='host';
   $('guestw').hidden=role==='host';
+}
+$('plist').onclick=e=>{
+  const row=e.target.closest('.pl');
+  if(!row||row.dataset.i===undefined)return;
+  const i=+row.dataset.i;
+  if(e.target.closest('.kick'))kick(i);else showProf(lobbyList[i]);
+};
+function kick(i){
+  const r=R[i];
+  if(role!=='host'||!r||i===0||playing)return;
+  try{r.conn.send({t:'kick'})}catch(x){}
+  R.splice(i,1);lb=Math.min(lb,4-R.length);lobbyPush();
+  setTimeout(()=>{try{r.conn.close()}catch(x){}},300);
 }
 function drop(c){
   R=R.filter(r=>r.conn!==c);
@@ -439,13 +488,6 @@ $('begin').onclick=()=>{
   if(R.length+lb<2){$('lerr').textContent='Потрібно мінімум 2 гравці — додай бота або друга';return}
   $('lerr').textContent='';startGame();
 };
-$('share').onclick=()=>{
-  const u=location.origin+location.pathname+'?room='+code;
-  const t='Грай зі мною в УНО 🇺🇦! Код кімнати: '+code;
-  if(tg&&tg.openTelegramLink)tg.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent(u)+'&text='+encodeURIComponent(t));
-  else if(navigator.share)navigator.share({title:'УНО',text:t,url:u});
-  else if(navigator.clipboard)navigator.clipboard.writeText(u);
-};
 
 function joinRoom(cd){
   if(typeof Peer==='undefined')return netErr('Не вдалося завантажити PeerJS. Перевір інтернет.');
@@ -453,7 +495,7 @@ function joinRoom(cd){
   peer=new Peer();
   peer.on('open',()=>{
     conn=peer.connect('unoua-'+cd,{reliable:true});
-    conn.on('open',()=>conn.send({t:'join',n:myName(),a:AV[Math.random()*AV.length|0]}));
+    conn.on('open',()=>conn.send({t:'join',...me()}));
     conn.on('data',guestData);
     conn.on('close',()=>{if(role==='guest')netErr('Зʼєднання з хостом втрачено')});
   });
@@ -463,6 +505,7 @@ function guestData(d){
   if(d.t==='lobby')renderLobby(d);
   else if(d.t==='v'){$('lobby').hidden=true;$('net').hidden=true;playing=true;render(d.v)}
   else if(d.t==='err')netErr(d.m);
+  else if(d.t==='kick')netErr('Тебе видалено з кімнати');
 }
 $('jn').onclick=()=>{
   const c=$('ci').value.trim().toUpperCase();
@@ -470,8 +513,6 @@ $('jn').onclick=()=>{
   $('nerr').textContent='Підключаюсь…';joinRoom(c);
 };
 
-const pre=(new URLSearchParams(location.search).get('room')||(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.start_param)||'').toUpperCase();
-if(/^[A-Z0-9]{5}$/.test(pre)){hideOv();$('net').hidden=false;$('nerr').textContent='Підключаюсь…';joinRoom(pre)}
 </script>
 </body>
 </html>
