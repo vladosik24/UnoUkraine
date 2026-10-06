@@ -400,7 +400,13 @@ const hideOv=()=>document.querySelectorAll('.ov:not(#prof)').forEach(o=>o.hidden
 const topC=()=>disc[disc.length-1];
 const nxt=(i,s=1)=>((i+dir*s)%P.length+P.length)%P.length;
 const ok=c=>c.c==='w'||c.c===color||c.v===topC().v;
-const okc=c=>pd>0?(c.v==='F'||(c.v==='D'&&topC().v==='D')):ok(c);
+// Стек: на +2 → +2 або +4; на +4 → лише +4
+const canStack=c=>{
+  if(c.v==='F')return true;
+  if(c.v==='D'&&topC().v==='D')return true;
+  return false;
+};
+const okc=c=>pd>0?canStack(c):ok(c);
 const label=c=>(c.c==='w'?'':CN[c.c]+' ')+(SYM[c.v]||c.v);
 function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
 
@@ -511,13 +517,43 @@ function act(pi,ci,col){
   }
   if(!p.h.length){over=pi;msgT=m;push();return}
   let t=nxt(pi);
-  if(dr){pd+=dr;m='+'+pd;const v=P[t];if(!v.h.some(okc)){v.h.push(...take(pd));v.called=false;m=v.n+' +'+pd;addHist(m);pd=0;t=nxt(t)}}
-  else if(skip)t=nxt(t);
-  msgT=role==='solo'?'':m;cur=t;push();
+  if(dr){
+    pd+=dr;
+    const victim=P[t];
+    const canStackNow=victim.h.some(canStack);
+    // Якщо суперник не може поставити стек — одразу бере карти і пропускає хід
+    if(!canStackNow){
+      const n=pd;
+      victim.h.push(...take(n));
+      victim.called=false;
+      msgT=victim.n+' бере +'+n;
+      addHist(msgT);
+      SFX.pen();
+      pd=0;
+      t=nxt(t); // пропускаємо того, хто брав
+      cur=t;push();
+      setTimeout(turn,1000);
+      return;
+    }
+    // Може стекати — передаємо хід з активним штрафом
+    msgT='Стек +'+pd+'!';
+    cur=t;push();
+    setTimeout(turn,800);
+    return;
+  }
+  if(skip)t=nxt(t);
+  msgT=m;cur=t;push();
   setTimeout(turn,1000);
 }
 function forceDraw(pi){
-  const v=P[pi];v.h.push(...take(pd));v.called=false;msgT=role==='solo'?'':('+'+pd);addHist(v.n+' +'+pd);pd=0;busy=true;hap('medium');SFX.draw();push();
+  const n=pd||0;
+  if(n<=0){busy=true;cur=nxt(pi);turn();return}
+  const v=P[pi];
+  v.h.push(...take(n));
+  v.called=false;
+  msgT=v.n+' бере +'+n;
+  addHist(msgT);
+  pd=0;busy=true;hap('medium');SFX.pen();push();
   setTimeout(()=>{cur=nxt(pi);turn()},900);
 }
 function handle(pi,a){
@@ -678,9 +714,8 @@ $('snd').onclick=()=>{mute=!mute;try{localStorage.setItem('unomute',mute?'1':'0'
 /* ---------- ЧАТ ---------- */
 let chatLog=[],unread=0,ctt;
 function chatUI(){
-  const on=role!=='solo'&&(!$('lobby').hidden||playing);
-  $('cbtn').hidden=!on;
-  if(!on){$('chat').hidden=true;$('ctoast').hidden=true;const h=$('hist');if(h)h.innerHTML=''}
+  // чат повністю вимкнено
+  try{$('cbtn').hidden=true;$('chat').hidden=true;$('ctoast').hidden=true}catch(e){}
   if(tg&&tg.BackButton){$('setup').hidden?tg.BackButton.show():tg.BackButton.hide()}
 }
 function drawChat(){
