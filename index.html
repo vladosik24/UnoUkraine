@@ -126,9 +126,11 @@ input{font:700 28px Georgia,serif;text-align:center;letter-spacing:6px;width:200
     <button onclick="$('rules').hidden=true">Назад</button>
   </div>
 
-  <div id="net" class="ov" hidden>
+  <div id="net" class="ov" hidden style="justify-content:flex-start;padding-top:36px">
     <h2>З друзями</h2>
     <button id="mk" style="font-size:19px;padding:14px 30px">➕ Створити кімнату</button>
+    <p class="sub" style="margin-top:6px">Відкриті кімнати <button class="bb" id="rf" style="width:34px;height:34px;font-size:16px">⟳</button></p>
+    <div id="rooms" style="display:flex;flex-direction:column;gap:8px;align-items:center;width:100%"></div>
     <p class="sub">або введи код друга</p>
     <input id="ci" maxlength="5" placeholder="КОД" autocomplete="off">
     <button id="jn">Приєднатись</button>
@@ -148,7 +150,8 @@ input{font:700 28px Georgia,serif;text-align:center;letter-spacing:6px;width:200
       <button id="begin" style="font-size:19px;padding:14px 36px">Почати гру</button>
     </div>
     <p id="guestw" class="sub" hidden>Чекаємо, поки хост почне гру…</p>
-    <button class="sec" onclick="leave()">Вийти</button>
+    <p id="idle" class="sub" style="font-size:13px;opacity:.7" hidden>Якщо ніхто не приєднається, кімнату буде закрито через 10 хв</p>
+    <button id="lv" class="sec" onclick="leave()">Вийти</button>
   </div>
 
   <div id="picker" class="ov" hidden>
@@ -188,8 +191,11 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const COL=['r','y','g','b'],CN={r:'червоний',y:'жовтий',g:'зелений',b:'синій'},HEX={r:'#d6342c',y:'#f5c400',g:'#2e9b4e',b:'#1f5fbf'};
 const SYM={S:'⊘',R:'⇄',D:'+2',W:'🔱',F:'+4'};
 const AV=['🦅','🐺','🦊','🐻','🦌','🐝'];
+/* Щоб працював список відкритих кімнат, встав адресу Firebase Realtime Database (Firebase Console → Realtime Database → адреса зверху),
+   напр. 'https://назва-проєкту-default-rtdb.firebaseio.com'. Правила мають дозволяти читання/запис шляху uno_rooms. */
+const FB_URL='https://unoukraine-default-rtdb.firebaseio.com';
 let deck,disc,P,cur,dir,color,busy,drawn,over=null,msgT='';
-let role='solo',peer=null,conn=null,R=[],lb=2,nb=2,code='',pend,lastV,tk='',playing=false,counted=false,lobbyList=[],ME=null;
+let role='solo',peer=null,conn=null,R=[],lb=2,nb=2,code='',pend,lastV,tk='',playing=false,counted=false,lobbyList=[],ME=null,aloneSince=0;
 
 const hideOv=()=>document.querySelectorAll('.ov:not(#prof)').forEach(o=>o.hidden=true);
 const topC=()=>disc[disc.length-1];
@@ -227,7 +233,7 @@ function startGame(){
   P.forEach(p=>p.h=take(7));
   const k=deck.findIndex(c=>/\d/.test(c.v));
   disc=[deck.splice(k,1)[0]];
-  color=topC().c;cur=0;dir=1;busy=false;drawn=false;over=null;playing=true;
+  color=topC().c;cur=0;dir=1;busy=false;drawn=false;over=null;playing=true;if(role==='host')closeRoom();
   msgT='Гра почалась! Клади карту того ж кольору чи значення';
   hideOv();turn();
 }
@@ -410,20 +416,22 @@ function showProf(q){
 $('ops').onclick=e=>{const el=e.target.closest('.op');if(el&&lastV)showProf(lastV.P[+el.dataset.j])};
 const rc=()=>{const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<5;i++)s+=A[Math.random()*A.length|0];return s};
 function leave(){
+  if(role==='host')closeRoom();
   playing=false;try{peer&&peer.destroy()}catch(e){}
   peer=conn=null;role='solo';P=null;hideOv();$('prof').hidden=true;$('setup').hidden=false;
 }
 function netErr(t){
+  if(role==='host')closeRoom();
   try{peer&&peer.destroy()}catch(e){}
-  peer=conn=null;role='solo';playing=false;hideOv();$('net').hidden=false;$('nerr').textContent=t;
+  peer=conn=null;role='solo';playing=false;hideOv();$('net').hidden=false;$('nerr').textContent=t;loadRooms();
 }
-$('online').onclick=()=>{hideOv();$('net').hidden=false;$('nerr').textContent=''};
+$('online').onclick=()=>{hideOv();$('net').hidden=false;$('nerr').textContent='';loadRooms()};
 
 function mkRoom(){
   if(typeof Peer==='undefined')return netErr('Не вдалося завантажити PeerJS. Перевір інтернет.');
   role='host';code=rc();
   peer=new Peer('unoua-'+code);
-  peer.on('open',()=>{R=[{...san(me()),conn:null}];lb=0;lobbyPush()});
+  peer.on('open',()=>{R=[{...san(me()),conn:null}];lb=0;aloneSince=0;lobbyPush()});
   peer.on('error',e=>{
     if(e.type==='unavailable-id'){try{peer.destroy()}catch(x){}mkRoom()}
     else netErr('Помилка мережі: '+e.type);
@@ -447,6 +455,8 @@ function hostData(c,d){
   }
 }
 function lobbyPush(){
+  if(R.length>1)aloneSince=0;else if(!aloneSince)aloneSince=Date.now();
+  if(role==='host')pubRoom();
   const d={t:'lobby',code,list:R.map(r=>({n:r.n,a:r.a,ph:r.ph,u:r.u,g:r.g,w:r.w})),nb:lb};
   R.forEach(r=>{if(r.conn&&r.conn.open)r.conn.send(d)});
   renderLobby(d);
@@ -458,6 +468,8 @@ function renderLobby(d){
   $('nb').textContent=d.nb;
   $('hostc').hidden=role!=='host';
   $('guestw').hidden=role==='host';
+  $('idle').hidden=!(role==='host'&&d.list.length===1);
+  $('lv').textContent=role==='host'?'🗑 Видалити кімнату':'Вийти';
 }
 $('plist').onclick=e=>{
   const row=e.target.closest('.pl');
@@ -488,6 +500,45 @@ $('begin').onclick=()=>{
   if(R.length+lb<2){$('lerr').textContent='Потрібно мінімум 2 гравці — додай бота або друга';return}
   $('lerr').textContent='';startGame();
 };
+
+const fb=(p,m,b)=>FB_URL?fetch(FB_URL+'/uno_rooms'+p+'.json',{method:m||'GET',body:b?JSON.stringify(b):undefined,keepalive:m==='DELETE'}).then(r=>r.json()).catch(()=>undefined):Promise.resolve(undefined);
+function pubRoom(){
+  if(!FB_URL||playing||!R.length)return;
+  fb('/'+code,'PUT',{h:R[0].n,a:R[0].a,ph:R[0].ph,pl:R.length,n:R.length+lb,t:{'.sv':'timestamp'}});
+}
+function closeRoom(){if(FB_URL&&code)fb('/'+code,'DELETE')}
+async function loadRooms(){
+  const box=$('rooms');
+  if(!FB_URL){box.innerHTML='<div class="err">Список кімнат вимкнено — встав FB_URL у index.html</div>';return}
+  const srv=await fb('/_srv','PUT',{'.sv':'timestamp'});
+  const T=typeof srv==='number'?srv:Date.now();
+  const d=await fb('','GET');
+  if(d===undefined){box.innerHTML='<div class="err">Не вдалося завантажити список кімнат</div>';return}
+  let h='';
+  Object.entries(d||{}).filter(([k,v])=>/^[A-Z0-9]{5}$/.test(k)&&v&&typeof v.t==='number').forEach(([k,v])=>{
+    const age=T-v.t;
+    if(age>3600000){fb('/'+k,'DELETE');return}
+    const q=san({n:v.h,a:v.a,ph:v.ph}),dead=age>45000,pl=v.pl|0;
+    h+=`<div class="pl rm" data-k="${k}"${dead?' style="opacity:.55"':''}>${avH(q)}<b>${esc(q.n)} <span class="tag">${k} · 👥 ${pl}/4${dead?' · неактивна':''}</span></b>${dead?'<button class="kick del">🗑</button>':pl>=4?'':'<button class="go" style="padding:6px 12px;font-size:14px">Увійти</button>'}</div>`;
+  });
+  box.innerHTML=h||'<div class="sub" style="font-size:14px;opacity:.7">Поки немає відкритих кімнат</div>';
+}
+$('rooms').onclick=e=>{
+  const row=e.target.closest('.rm');
+  if(!row)return;
+  const k=row.dataset.k;
+  if(e.target.closest('.del')){fb('/'+k,'DELETE').then(loadRooms);return}
+  if(row.style.opacity)return;
+  $('nerr').textContent='Підключаюсь…';joinRoom(k);
+};
+$('rf').onclick=()=>loadRooms();
+setInterval(()=>{if(!$('net').hidden&&role==='solo')loadRooms()},5000);
+setInterval(()=>{
+  if(role!=='host'||playing)return;
+  pubRoom();
+  if(aloneSince&&Date.now()-aloneSince>600000)netErr('Кімнату закрито: довго ніхто не приєднувався');
+},15000);
+addEventListener('pagehide',()=>{if(role==='host')closeRoom()});
 
 function joinRoom(cd){
   if(typeof Peer==='undefined')return netErr('Не вдалося завантажити PeerJS. Перевір інтернет.');
