@@ -78,6 +78,28 @@ input{font:700 28px Georgia,serif;text-align:center;letter-spacing:6px;width:200
 #plist{display:flex;flex-direction:column;gap:8px;align-items:center}
 #prof{z-index:8}
 .err{color:#ffb3ae;min-height:20px;font:14px system-ui,sans-serif}
+#snd{background:transparent;box-shadow:none;padding:0;width:36px;font-size:20px;color:#fff}
+#cbtn{position:absolute;top:20px;right:56px;z-index:9;width:40px;height:40px;border-radius:50%;padding:0;font-size:20px;box-shadow:0 2px 6px #0008}
+#cbd{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:var(--r);color:#fff;font:700 11px/18px system-ui,sans-serif;font-style:normal;padding:0 4px}
+#chat{position:absolute;left:0;right:0;bottom:0;height:58%;z-index:10;background:#0a2250f7;border-top:3px solid var(--y);border-radius:18px 18px 0 0;display:flex;flex-direction:column;animation:up .25s}
+#clog{flex:1;overflow-y:auto;padding:10px 12px;font:14px system-ui,sans-serif;text-align:left}
+.cm{margin:6px 0;padding:6px 10px;border-radius:12px;background:#ffffff1c;animation:pop .25s;word-break:break-word}
+.cm b{color:var(--y)}
+#cq{display:flex;gap:6px;padding:0 8px;justify-content:center}
+#cq button{padding:6px 12px;font-size:20px;box-shadow:none;background:#ffffff22}
+#cin{width:auto;flex:1;min-width:0;font:16px system-ui,sans-serif;letter-spacing:0;text-transform:none;padding:8px 10px;border-width:2px}
+#ctoast{position:absolute;top:66px;left:50%;transform:translateX(-50%);z-index:9;background:#0a2250f0;border:2px solid var(--y);border-radius:14px;padding:8px 14px;font:14px system-ui,sans-serif;max-width:86%;animation:pop .25s}
+.new{animation:deal .45s ease-out backwards}
+.shake{animation:shake .3s}
+#draw.bump{animation:bump .25s}
+.conf{position:absolute;top:-20px;width:10px;height:14px;animation:fall linear forwards;z-index:6}
+@keyframes up{from{transform:translateY(100%)}}
+@keyframes pop{from{transform:scale(.7);opacity:0}}
+@keyframes deal{from{transform:translateY(90px) scale(.5);opacity:0}}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes bump{50%{transform:scale(.86)}}
+@keyframes flash{50%{transform:translateX(-50%) scale(1.5)}}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 @keyframes land{from{transform:scale(1.6) rotate(25deg);opacity:0}to{transform:none;opacity:1}}
 @keyframes glow{50%{box-shadow:0 0 14px var(--y)}}
 @keyframes pulse{50%{transform:scale(1.1)}}
@@ -87,7 +109,7 @@ input{font:700 28px Georgia,serif;text-align:center;letter-spacing:6px;width:200
 <div id="app">
   <div class="band"></div>
   <div class="wrap">
-    <div id="hd"><span id="dir">↻</span><span id="turn"></span><span style="width:36px"></span></div>
+    <div id="hd"><span id="dir">↻</span><span id="turn"></span><button id="snd">🔊</button></div>
     <div id="ops"></div>
     <div id="mid"><div id="cdot"></div><div id="draw"></div><div id="top"></div></div>
     <div id="msg"></div>
@@ -97,6 +119,13 @@ input{font:700 28px Georgia,serif;text-align:center;letter-spacing:6px;width:200
   <div class="band bt"></div>
   <button id="pass" hidden>Пас</button>
   <button id="uno" hidden>УНО!</button>
+  <button id="cbtn" hidden>💬<i id="cbd" hidden></i></button>
+  <div id="ctoast" hidden></div>
+  <div id="chat" hidden>
+    <div id="clog"></div>
+    <div id="cq"><button>😂</button><button>👍</button><button>🔥</button><button>😡</button><button>😭</button><button>УНО!</button></div>
+    <div style="display:flex;gap:6px;padding:8px"><input id="cin" maxlength="120" placeholder="Повідомлення…" autocomplete="off"><button id="csend">➤</button></div>
+  </div>
 
   <div id="setup" class="ov">
     <div style="font-size:44px">🇺🇦</div>
@@ -151,6 +180,7 @@ input{font:700 28px Georgia,serif;text-align:center;letter-spacing:6px;width:200
     </div>
     <p id="guestw" class="sub" hidden>Чекаємо, поки хост почне гру…</p>
     <p id="idle" class="sub" style="font-size:13px;opacity:.7" hidden>Якщо ніхто не приєднається, кімнату буде закрито через 10 хв</p>
+    <div id="fberr" class="err"></div>
     <button id="lv" class="sec" onclick="leave()">Вийти</button>
   </div>
 
@@ -194,6 +224,32 @@ const AV=['🦅','🐺','🦊','🐻','🦌','🐝'];
 /* Щоб працював список відкритих кімнат, встав адресу Firebase Realtime Database (Firebase Console → Realtime Database → адреса зверху),
    напр. 'https://назва-проєкту-default-rtdb.firebaseio.com'. Правила мають дозволяти читання/запис шляху uno_rooms. */
 const FB_URL='https://unoukraine-default-rtdb.firebaseio.com';
+
+/* ---------- ЗВУКИ (синтез, без файлів) ---------- */
+let AC=null,mute=false;try{mute=localStorage.getItem('unomute')==='1'}catch(e){}
+function tone(f,d,t='sine',v=.14,at=0){
+  if(mute)return;
+  try{
+    AC=AC||new(window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended')AC.resume();
+    const o=AC.createOscillator(),g=AC.createGain(),s=AC.currentTime+at;
+    o.type=t;o.frequency.value=f;
+    g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.001,s+d);
+    o.connect(g);g.connect(AC.destination);o.start(s);o.stop(s+d);
+  }catch(e){}
+}
+const SFX={
+  play:()=>{tone(520,.08,'triangle');tone(780,.1,'triangle',.12,.06)},
+  draw:()=>tone(300,.07,'square',.05),
+  turn:()=>{tone(660,.12);tone(880,.16,'sine',.12,.1)},
+  uno:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.16,'square',.07,i*.08)),
+  pen:()=>{tone(200,.25,'sawtooth',.07);tone(140,.3,'sawtooth',.07,.15)},
+  win:()=>[523,659,784,659,784,1047].forEach((f,i)=>tone(f,.22,'triangle',.13,i*.12)),
+  lose:()=>[392,330,262].forEach((f,i)=>tone(f,.3,'sine',.12,i*.2)),
+  chat:()=>tone(900,.06,'sine',.09),
+  bad:()=>tone(150,.1,'square',.05)
+};
+addEventListener('pointerdown',()=>{try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume()}catch(e){}});
 let deck,disc,P,cur,dir,color,busy,drawn,over=null,msgT='';
 let role='solo',peer=null,conn=null,R=[],lb=2,nb=2,code='',pend,lastV,tk='',playing=false,counted=false,lobbyList=[],ME=null,aloneSince=0;
 
@@ -235,12 +291,12 @@ function startGame(){
   disc=[deck.splice(k,1)[0]];
   color=topC().c;cur=0;dir=1;busy=false;drawn=false;over=null;playing=true;if(role==='host')closeRoom();
   msgT='Гра почалась! Клади карту того ж кольору чи значення';
-  hideOv();turn();
+  lastV=null;hideOv();turn();
 }
 function view(i){
   const p=P[i],h=p.h,mine=cur===i&&!busy&&over==null;
   return{me:i,hand:h,can:h.map((c,k)=>mine&&ok(c)&&(!drawn||k===h.length-1)),
-    P:P.map(q=>({n:q.n,a:q.a,ph:q.ph,u:q.u,g:q.g,w:q.w,bot:q.bot,c:q.h.length})),top:topC(),color,dir,cur,deckN:deck.length,msg:msgT,
+    P:P.map(q=>({n:q.n,a:q.a,ph:q.ph,u:q.u,g:q.g,w:q.w,bot:q.bot,c:q.h.length})),top:topC(),dn:disc.length,color,dir,cur,deckN:deck.length,msg:msgT,
     drawn:mine&&drawn,uno:h.length>0&&h.length<=2&&!p.called&&over==null,over:over==null?null:{w:over},
     hint:over!=null?'':h.length===1&&!p.called?'⚡ Швидко натисни УНО!':h.length===2&&!p.called?'Лишилось 2 карти — натисни УНО!':''};
 }
@@ -341,6 +397,7 @@ function cardH(c,cls=''){
   return `<div class="card ${c.c} ${cls}"><i class="x t"></i><b class="k">${s}</b><span class="m">${s}</span><b class="k e">${s}</b><i class="x bt"></i></div>`;
 }
 function render(v){
+  const pv=lastV&&!(lastV.over&&!v.over)?lastV:null;
   lastV=v;
   let o='';
   for(let k=1;k<v.P.length;k++){
@@ -360,7 +417,7 @@ function render(v){
   $('pass').hidden=!v.drawn;
   $('uno').hidden=!v.uno;
   const e=v.over;
-  if(e&&!counted){counted=true;const st=stat();st.g++;if(e.w===v.me)st.w++;try{localStorage.setItem('unost',JSON.stringify(st))}catch(x){}}
+  if(e&&!counted){counted=true;if(e.w===v.me){SFX.win();confetti()}else SFX.lose();const st=stat();st.g++;if(e.w===v.me)st.w++;try{localStorage.setItem('unost',JSON.stringify(st))}catch(x){}}
   if(!e)counted=false;
   $('end').hidden=!e;
   if(e){
@@ -370,6 +427,7 @@ function render(v){
     $('again').hidden=role==='guest';
     $('wait').hidden=role!=='guest';
   }
+  fx(pv,v);chatUI();
 }
 function send(a){
   if(role==='guest'){if(conn&&conn.open)conn.send({t:'a',a})}
@@ -379,7 +437,7 @@ $('hand').onclick=e=>{
   const el=e.target.closest('.card');
   if(!el||!lastV)return;
   const i=+el.dataset.i;
-  if(!lastV.can[i])return;
+  if(!lastV.can[i]){SFX.bad();el.classList.add('shake');setTimeout(()=>el.classList.remove('shake'),300);return}
   if(lastV.hand[i].c==='w'){pend=i;$('picker').hidden=false}
   else send({t:'play',i});
 };
@@ -395,6 +453,82 @@ document.querySelectorAll('.bb[data-n]').forEach(b=>b.onclick=()=>{
 });
 $('go').onclick=()=>{role='solo';R=[{...san(me()),n:'Ти',conn:null}];lb=nb;startGame()};
 $('again').onclick=()=>startGame();
+
+/* ---------- АНІМАЦІЇ ТА ЗВУКИ ---------- */
+function restart(el,cls){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls)}
+function fx(pv,v){
+  const inc=pv?v.hand.length-pv.hand.length:v.hand.length;
+  if(inc>0)[...$('hand').children].slice(-inc).forEach(c=>c.classList.add('new'));
+  if(!pv)return;
+  if(inc>0||v.P.some((q,i)=>i!==v.me&&pv.P[i]&&q.c>pv.P[i].c)){SFX.draw();restart($('draw'),'bump')}
+  if(v.dn!==pv.dn)SFX.play();
+  if(v.color!==pv.color){const c=$('cdot');c.style.animation='none';void c.offsetWidth;c.style.animation='flash .5s'}
+  if(v.cur===v.me&&pv.cur!==v.me&&!v.over)SFX.turn();
+  if(v.msg!==pv.msg){
+    if(/забув/.test(v.msg))SFX.pen();
+    else if(/УНО!/.test(v.msg)&&!/натисни/.test(v.msg))SFX.uno();
+  }
+}
+function confetti(){
+  const e=$('end');
+  for(let i=0;i<40;i++){
+    const d=document.createElement('i');d.className='conf';
+    d.style.left=Math.random()*100+'%';d.style.background=HEX[COL[i%4]];
+    d.style.animationDuration=(2+Math.random()*2)+'s';d.style.animationDelay=Math.random()*.8+'s';
+    e.appendChild(d);setTimeout(()=>d.remove(),5500);
+  }
+}
+$('snd').textContent=mute?'🔇':'🔊';
+$('snd').onclick=()=>{mute=!mute;try{localStorage.setItem('unomute',mute?'1':'0')}catch(e){};$('snd').textContent=mute?'🔇':'🔊';if(!mute)SFX.chat()};
+
+/* ---------- ЧАТ ---------- */
+let chatLog=[],unread=0,ctt;
+function chatUI(){
+  const on=role!=='solo'&&(!$('lobby').hidden||playing);
+  $('cbtn').hidden=!on;
+  if(!on)$('chat').hidden=true;
+}
+function drawChat(){
+  const l=$('clog');
+  l.innerHTML=chatLog.map(m=>`<div class="cm"><b>${esc(m.a)} ${esc(m.n)}</b> ${esc(m.m)}</div>`).join('');
+  l.scrollTop=l.scrollHeight;
+}
+function addChat(m){
+  chatLog.push({n:String(m.n).slice(0,14),a:String(m.a).slice(0,4),m:String(m.m).slice(0,120)});
+  if(chatLog.length>50)chatLog.shift();
+  drawChat();
+  if($('chat').hidden){
+    unread++;$('cbd').hidden=false;$('cbd').textContent=unread;
+    const t=$('ctoast');t.textContent=m.a+' '+m.n+': '+m.m;t.hidden=false;
+    t.style.animation='none';void t.offsetWidth;t.style.animation='';
+    clearTimeout(ctt);ctt=setTimeout(()=>t.hidden=true,3000);
+  }
+  SFX.chat();
+}
+function chatIn(c,m){
+  const r=c?R.find(x=>x.conn===c):R[0];
+  m=String(m||'').trim().slice(0,120);
+  if(!r||!m||Date.now()-(r.ct||0)<500)return;
+  r.ct=Date.now();
+  const o={t:'chat',n:r.n,a:r.a,m};
+  R.forEach(x=>{if(x.conn&&x.conn.open)x.conn.send(o)});
+  addChat(o);
+}
+function sendChat(m){
+  m=String(m||$('cin').value).trim().slice(0,120);
+  if(!m)return;
+  $('cin').value='';
+  if(role==='guest'){if(conn&&conn.open)conn.send({t:'chat',m})}
+  else if(role==='host')chatIn(null,m);
+}
+$('cbtn').onclick=()=>{
+  const open=!$('chat').hidden;
+  $('chat').hidden=open;
+  if(!open){unread=0;$('cbd').hidden=true;$('ctoast').hidden=true;drawChat()}
+};
+$('csend').onclick=()=>sendChat();
+$('cin').onkeydown=e=>{if(e.key==='Enter')sendChat()};
+$('cq').onclick=e=>{const b=e.target.closest('button');if(b)sendChat(b.textContent)};
 
 /* ---------- ОНЛАЙН (PeerJS) ---------- */
 const avH=(q,cls='')=>`<div class="avc ${cls}">${q.ph?`<img class="ph" src="${esc(q.ph)}" onerror="this.outerHTML='${q.a}'">`:esc(q.a)}</div>`;
@@ -418,12 +552,12 @@ const rc=()=>{const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<
 function leave(){
   if(role==='host')closeRoom();
   playing=false;try{peer&&peer.destroy()}catch(e){}
-  peer=conn=null;role='solo';P=null;hideOv();$('prof').hidden=true;$('setup').hidden=false;
+  peer=conn=null;role='solo';P=null;lastV=null;chatLog=[];unread=0;lobbyList=[];$('cbd').hidden=true;hideOv();$('prof').hidden=true;$('setup').hidden=false;chatUI();
 }
 function netErr(t){
   if(role==='host')closeRoom();
   try{peer&&peer.destroy()}catch(e){}
-  peer=conn=null;role='solo';playing=false;hideOv();$('net').hidden=false;$('nerr').textContent=t;loadRooms();
+  peer=conn=null;role='solo';playing=false;hideOv();$('net').hidden=false;$('nerr').textContent=t;loadRooms();chatUI();
 }
 $('online').onclick=()=>{hideOv();$('net').hidden=false;$('nerr').textContent='';loadRooms()};
 
@@ -449,7 +583,8 @@ function hostData(c,d){
     if(R.length>=4){c.send({t:'err',m:'Кімната заповнена'});return}
     R.push({...san(d),conn:c});
     lb=Math.min(lb,4-R.length);lobbyPush();
-  }else if(d.t==='a'&&P){
+  }else if(d.t==='chat')chatIn(c,d.m);
+  else if(d.t==='a'&&P){
     const i=P.findIndex(p=>p.conn===c);
     if(i>=0&&d.a)handle(i,d.a);
   }
@@ -462,6 +597,7 @@ function lobbyPush(){
   renderLobby(d);
 }
 function renderLobby(d){
+  if(d.list.length>lobbyList.length&&!$('lobby').hidden)SFX.chat();
   hideOv();$('lobby').hidden=false;lobbyList=d.list;
   $('code').textContent=d.code;
   $('plist').innerHTML=d.list.map((q,i)=>`<div class="pl" data-i="${i}">${avH(q)}<b>${esc(q.n)}${i===0?' <span class="tag">👑 хост</span>':''}</b>${role==='host'&&i>0?'<button class="kick">✕</button>':''}</div>`).join('')+(d.nb?`<div class="pl" style="cursor:default"><div class="avc">🤖</div><b>Ботів: ${d.nb}</b></div>`:'');
@@ -470,6 +606,7 @@ function renderLobby(d){
   $('guestw').hidden=role==='host';
   $('idle').hidden=!(role==='host'&&d.list.length===1);
   $('lv').textContent=role==='host'?'🗑 Видалити кімнату':'Вийти';
+  chatUI();
 }
 $('plist').onclick=e=>{
   const row=e.target.closest('.pl');
@@ -501,10 +638,12 @@ $('begin').onclick=()=>{
   $('lerr').textContent='';startGame();
 };
 
-const fb=(p,m,b)=>FB_URL?fetch(FB_URL+'/uno_rooms'+p+'.json',{method:m||'GET',body:b?JSON.stringify(b):undefined,keepalive:m==='DELETE'}).then(r=>r.json()).catch(()=>undefined):Promise.resolve(undefined);
+const fb=(p,m,b)=>FB_URL?fetch(FB_URL+'/uno_rooms'+p+'.json',{method:m||'GET',body:b?JSON.stringify(b):undefined,keepalive:m==='DELETE'}).then(r=>r.json()).then(j=>j&&j.error?{__e:j.error}:j).catch(()=>undefined):Promise.resolve(undefined);
 function pubRoom(){
   if(!FB_URL||playing||!R.length)return;
-  fb('/'+code,'PUT',{h:R[0].n,a:R[0].a,ph:R[0].ph,pl:R.length,n:R.length+lb,t:{'.sv':'timestamp'}});
+  fb('/'+code,'PUT',{h:R[0].n,a:R[0].a,ph:R[0].ph,pl:R.length,n:R.length+lb,t:{'.sv':'timestamp'}}).then(r=>{
+    $('fberr').textContent=r&&r.__e?'Кімнату не видно у списку: '+r.__e:r===undefined?'Кімнату не видно у списку: немає звʼязку з Firebase':'';
+  });
 }
 function closeRoom(){if(FB_URL&&code)fb('/'+code,'DELETE')}
 async function loadRooms(){
@@ -513,7 +652,8 @@ async function loadRooms(){
   const srv=await fb('/_srv','PUT',{'.sv':'timestamp'});
   const T=typeof srv==='number'?srv:Date.now();
   const d=await fb('','GET');
-  if(d===undefined){box.innerHTML='<div class="err">Не вдалося завантажити список кімнат</div>';return}
+  if(d===undefined){box.innerHTML='<div class="err">Не вдалося завантажити список кімнат (немає звʼязку з Firebase)</div>';return}
+  if(d&&d.__e){box.innerHTML='<div class="err">Firebase: '+esc(d.__e)+'. Відкрий Realtime Database → Rules і дозволь доступ до uno_rooms</div>';return}
   let h='';
   Object.entries(d||{}).filter(([k,v])=>/^[A-Z0-9]{5}$/.test(k)&&v&&typeof v.t==='number').forEach(([k,v])=>{
     const age=T-v.t;
@@ -557,6 +697,7 @@ function guestData(d){
   else if(d.t==='v'){$('lobby').hidden=true;$('net').hidden=true;playing=true;render(d.v)}
   else if(d.t==='err')netErr(d.m);
   else if(d.t==='kick')netErr('Тебе видалено з кімнати');
+  else if(d.t==='chat')addChat(d);
 }
 $('jn').onclick=()=>{
   const c=$('ci').value.trim().toUpperCase();
