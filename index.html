@@ -22,7 +22,7 @@ html,body{margin:0;height:100%;background:var(--ink);color:#fff;font-family:Geor
 .op.on{border-color:var(--y);background:#ffffff1a;animation:glow 1.2s infinite}
 .av{font-size:28px;line-height:1.1}
 .mbs{height:28px;padding-left:8px;display:flex;justify-content:center}
-.mb{width:16px;height:24px;background-color:#0e3a85;border:2px solid #fff;border-radius:4px;margin-left:-8px;background-image:linear-gradient(45deg,transparent 40%,var(--y) 40% 60%,transparent 60%);background-size:6px 6px}
+.mb{width:16px;height:24px;background-color:var(--bk,#0e3a85);border:2px solid #fff;border-radius:4px;margin-left:-8px;background-image:linear-gradient(45deg,transparent 40%,var(--y) 40% 60%,transparent 60%);background-size:6px 6px}
 .cnt{font:12px system-ui,sans-serif;opacity:.85}
 #mid{flex:1;display:flex;align-items:center;justify-content:center;gap:24px;position:relative;margin:4px 14px;border-radius:50%/40%;background:radial-gradient(ellipse,#2570d8 0,#164aa6 55%,transparent 72%)}
 #cdot{position:absolute;top:2px;left:50%;transform:translateX(-50%);font:600 13px system-ui,sans-serif;display:flex;align-items:center;gap:6px}
@@ -37,7 +37,7 @@ html,body{margin:0;height:100%;background:var(--ink);color:#fff;font-family:Geor
 .card{width:64px;height:96px;border-radius:10px;position:relative;border:3px solid #fff;color:#fff;flex:none;box-shadow:0 3px 8px #0008;display:flex;align-items:center;justify-content:center;font-weight:800;background:var(--bg)}
 .card.r{--bg:var(--r);--c:var(--r)}.card.y{--bg:var(--y);--c:#a87c00}.card.g{--bg:var(--g);--c:var(--g)}.card.b{--bg:var(--b);--c:var(--b)}
 .card.w{--c:#1a1a1a;background:conic-gradient(var(--r) 0 25%,var(--y) 0 50%,var(--g) 0 75%,var(--b) 0)}
-.card.back{--bg:#0e3a85}
+.card.back{--bg:var(--bk,#0e3a85)}
 .card.big{width:80px;height:120px}
 #top .card{animation:land .35s ease-out}
 .x{position:absolute;left:3px;right:3px;height:7px;background:linear-gradient(45deg,transparent 42%,#fffa 42% 58%,transparent 58%),linear-gradient(-45deg,transparent 42%,#fffa 42% 58%,transparent 58%);background-size:7px 7px}
@@ -93,6 +93,10 @@ input{font:700 28px Georgia,serif;text-align:center;letter-spacing:6px;width:200
 .shake{animation:shake .3s}
 #draw.bump{animation:bump .25s}
 .conf{position:absolute;top:-20px;width:10px;height:14px;animation:fall linear forwards;z-index:6}
+body[data-sk="1"]{--bk:#7a1010}body[data-sk="2"]{--bk:#14532d}body[data-sk="3"]{--bk:#3b1a6e}
+.cb{display:none}body.cbm .cb{display:block;position:absolute;bottom:5px;left:0;right:0;text-align:center;font:700 11px system-ui,sans-serif;font-style:normal}
+.bb2{padding:8px 12px;font-size:14px;border-radius:20px;background:transparent;color:#fff;box-shadow:inset 0 0 0 2px #fff8}
+.bb2.on{background:var(--y);color:var(--ink);box-shadow:0 2px 0 #a87c00}
 @keyframes up{from{transform:translateY(100%)}}
 @keyframes pop{from{transform:scale(.7);opacity:0}}
 @keyframes deal{from{transform:translateY(90px) scale(.5);opacity:0}}
@@ -127,15 +131,17 @@ input{font:700 28px Georgia,serif;text-align:center;letter-spacing:6px;width:200
     <div style="display:flex;gap:6px;padding:8px"><input id="cin" maxlength="120" placeholder="Повідомлення…" autocomplete="off"><button id="csend">➤</button></div>
   </div>
 
-  <div id="setup" class="ov">
+  <div id="setup" class="ov" style="justify-content:flex-start;padding-top:14px;gap:8px">
     <div style="font-size:44px">🇺🇦</div>
     <h1>УНО</h1>
     <p class="sub">українська версія</p>
     <p class="sub" style="margin-top:6px">Скільки ботів?</p>
     <div class="row"><button class="bb" data-n="1">1</button><button class="bb on" data-n="2">2</button><button class="bb" data-n="3">3</button></div>
+    <div class="row" id="lvr"><button class="bb2" data-l="0">Легкі</button><button class="bb2 on" data-l="1">Звичайні</button><button class="bb2" data-l="2">Хитрі</button></div>
+    <div class="row" id="mdr"><button class="bb2 on" data-m="0">Класика</button><button class="bb2" data-m="1">Короткий</button><button class="bb2" data-m="2">Хардкор</button></div>
     <button id="go" style="font-size:19px;padding:14px 36px">🤖 Грати з ботами</button>
     <button id="online" style="font-size:19px;padding:14px 36px;background:var(--b);color:#fff;box-shadow:0 3px 0 #123c7a">👥 Грати з друзями</button>
-    <button class="sec" onclick="$('rules').hidden=false">Правила</button>
+    <div class="row"><button class="bb2" id="skb">🎨 Сорочка</button><button class="bb2" id="cbb">👁 Форми</button><button class="bb2" onclick="$('rules').hidden=false">Правила</button></div>
   </div>
 
   <div id="rules" class="ov" hidden>
@@ -149,6 +155,8 @@ input{font:700 28px Georgia,serif;text-align:center;letter-spacing:6px;width:200
         <li><b>+2</b> наступний бере 2 і пропускає</li>
         <li><b>🔱</b> дика — обираєш колір</li>
         <li><b>+4</b> наступний бере 4, обираєш колір</li>
+        <li><b>Стек:</b> на +2 можна покласти +2 або +4, на +4 — лише +4. Інакше береш усе накопичене</li>
+        <li><b>Таймер:</b> онлайн на хід 30 с (хардкор — 15 с). Двічі проспав — далі грає бот</li>
       </ul>
       <p><b>Як крикнути «УНО!»:</b> коли в тебе лишається 2 або 1 карта, на екрані з'являється велика червона кнопка <b>УНО!</b>. Натисни її — найкраще заздалегідь, коли маєш 2 карти. Якщо зіграв передостанню карту й за 3 секунди не натиснув — береш +2.</p>
     </div>
@@ -175,6 +183,7 @@ input{font:700 28px Georgia,serif;text-align:center;letter-spacing:6px;width:200
     <div id="hostc">
       <p class="sub">Додати ботів</p>
       <div class="row"><button class="bb" id="bm">−</button><b id="nb" style="font-size:24px;width:30px">0</b><button class="bb" id="bp">+</button></div>
+      <button class="sec" id="mdb" style="padding:8px 16px">Режим: Класика</button>
       <div id="lerr" class="err"></div>
       <button id="begin" style="font-size:19px;padding:14px 36px">Почати гру</button>
     </div>
@@ -250,13 +259,15 @@ const SFX={
   bad:()=>tone(150,.1,'square',.05)
 };
 addEventListener('pointerdown',()=>{try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume()}catch(e){}});
-let deck,disc,P,cur,dir,color,busy,drawn,over=null,msgT='';
-let role='solo',peer=null,conn=null,R=[],lb=2,nb=2,code='',pend,lastV,tk='',playing=false,counted=false,lobbyList=[],ME=null,aloneSince=0;
+let deck,disc,P,cur,dir,color,busy,drawn,over=null,msgT='',pd=0,deadline=0,mode=0,lvl=1;
+const MODES=['Класика','Короткий','Хардкор'],GL={r:'●',y:'▲',g:'■',b:'◆'};
+let role='solo',peer=null,conn=null,R=[],lb=2,nb=2,code='',pend,lastV,tk='',playing=false,counted=false,lobbyList=[],ME=null,aloneSince=0,rc2=0;
 
 const hideOv=()=>document.querySelectorAll('.ov:not(#prof)').forEach(o=>o.hidden=true);
 const topC=()=>disc[disc.length-1];
 const nxt=(i,s=1)=>((i+dir*s)%P.length+P.length)%P.length;
 const ok=c=>c.c==='w'||c.c===color||c.v===topC().v;
+const okc=c=>pd>0?(c.v==='F'||(c.v==='D'&&topC().v==='D')):ok(c);
 const label=c=>(c.c==='w'?'':CN[c.c]+' ')+(SYM[c.v]||c.v);
 function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
 
@@ -284,21 +295,21 @@ function take(n){
 function startGame(){
   const bn=['Богдан','Оксана','Тарас'],ba=['🦌','🐺','🦊'];
   deck=build();
-  P=R.map(r=>({n:r.n,a:r.a,ph:r.ph||'',u:r.u||'',g:r.g||0,w:r.w||0,bot:0,conn:r.conn,h:[],called:false}));
-  for(let i=0;i<lb;i++)P.push({n:bn[i],a:ba[i],ph:'',u:'',g:0,w:0,bot:1,conn:null,h:[],called:false});
-  P.forEach(p=>p.h=take(7));
+  P=R.map(r=>({n:r.n,a:r.a,ph:r.ph||'',u:r.u||'',g:r.g||0,w:r.w||0,bot:0,hum:1,miss:0,key:r.key||'',conn:r.conn,h:[],called:false}));
+  for(let i=0;i<lb;i++)P.push({n:bn[i],a:ba[i],ph:'',u:'',g:0,w:0,bot:1,hum:0,miss:0,conn:null,h:[],called:false});
+  P.forEach(p=>p.h=take(mode===1?4:7));
   const k=deck.findIndex(c=>/\d/.test(c.v));
   disc=[deck.splice(k,1)[0]];
-  color=topC().c;cur=0;dir=1;busy=false;drawn=false;over=null;playing=true;if(role==='host')closeRoom();
+  color=topC().c;cur=0;dir=1;busy=false;drawn=false;over=null;playing=true;pd=0;if(role==='host')closeRoom();
   msgT='Гра почалась! Клади карту того ж кольору чи значення';
   lastV=null;hideOv();turn();
 }
 function view(i){
   const p=P[i],h=p.h,mine=cur===i&&!busy&&over==null;
-  return{me:i,hand:h,can:h.map((c,k)=>mine&&ok(c)&&(!drawn||k===h.length-1)),
+  return{me:i,hand:h,can:h.map((c,k)=>mine&&okc(c)&&(!drawn||k===h.length-1)),
     P:P.map(q=>({n:q.n,a:q.a,ph:q.ph,u:q.u,g:q.g,w:q.w,bot:q.bot,c:q.h.length})),top:topC(),dn:disc.length,color,dir,cur,deckN:deck.length,msg:msgT,
-    drawn:mine&&drawn,uno:h.length>0&&h.length<=2&&!p.called&&over==null,over:over==null?null:{w:over},
-    hint:over!=null?'':h.length===1&&!p.called?'⚡ Швидко натисни УНО!':h.length===2&&!p.called?'Лишилось 2 карти — натисни УНО!':''};
+    drawn:mine&&drawn,tl:mine&&!p.bot&&deadline?Math.max(0,deadline-Date.now()):0,uno:h.length>0&&h.length<=2&&!p.called&&over==null,over:over==null?null:{w:over},
+    hint:over!=null?'':pd>0&&mine?'Поклади +2/+4 або бери '+pd:h.length===1&&!p.called?'⚡ Швидко натисни УНО!':h.length===2&&!p.called?'Лишилось 2 карти — натисни УНО!':''};
 }
 function push(){
   P.forEach((p,i)=>{if(p.conn&&p.conn.open)p.conn.send({t:'v',v:view(i)})});
@@ -307,8 +318,8 @@ function push(){
 function turn(){
   drawn=false;
   const p=P[cur];
-  if(p.bot){busy=true;push();setTimeout(bot,1000)}
-  else{busy=false;push()}
+  if(p.bot){busy=true;deadline=0;push();setTimeout(bot,1000)}
+  else{busy=false;deadline=role==='host'?Date.now()+(mode===2?15000:30000):0;push()}
 }
 function pickColorFor(p){
   const n={r:0,y:0,g:0,b:0};
@@ -317,9 +328,11 @@ function pickColorFor(p){
 }
 function bot(){
   const p=P[cur];
-  if(over!=null||!p.bot)return;
-  const pl=p.h.map((c,i)=>[c,i]).filter(x=>ok(x[0]));
+  if(over!=null)return;
+  if(!p.bot){busy=false;deadline=role==='host'?Date.now()+30000:0;push();return}
+  const pl=p.h.map((c,i)=>[c,i]).filter(x=>okc(x[0]));
   if(!pl.length){
+    if(pd>0)return forceDraw(cur);
     const c=take(1);
     if(c.length){
       p.h.push(c[0]);p.called=false;msgT=p.n+' бере карту';push();
@@ -330,12 +343,13 @@ function bot(){
   const nh=P[nxt(cur)].h.length;
   const score=c=>{
     let s=Math.random();
+    if(lvl===2){if(c.c==='w'&&p.h.length>3)s-=3;else if(c.c===color)s+=.3;s+=p.h.filter(x=>x.c===c.c).length/10}
     if(c.c==='w')s-=5;
     else if(['S','R','D'].includes(c.v))s+=nh<=2?5:1;
     else s+=(+c.v)/10;
     return s;
   };
-  pl.sort((a,b)=>score(b[0])-score(a[0]));
+  if(lvl===0)pl.sort(()=>Math.random()-.5);else pl.sort((a,b)=>score(b[0])-score(a[0]));
   act(cur,pl[0][1],pickColorFor(p));
 }
 function act(pi,ci,col){
@@ -355,16 +369,20 @@ function act(pi,ci,col){
     else{
       m+=' · натисни УНО!';
       setTimeout(()=>{
-        if(!p.called&&p.h.length===1&&over==null){p.h.push(...take(2));msgT=p.n+' забув УНО! +2';push()}
+        if(!p.called&&p.h.length===1&&over==null){p.h.push(...take(mode===2?4:2));msgT=p.n+' забув УНО! +'+(mode===2?4:2);push()}
       },3000);
     }
   }
   if(!p.h.length){over=pi;msgT=m;push();return}
   let t=nxt(pi);
-  if(dr){const v=P[t];v.h.push(...take(dr));v.called=false;m+=` · ${v.n} бере ${dr}`;t=nxt(t)}
+  if(dr){pd+=dr;m+=` · +${pd}`;const v=P[t];if(!v.h.some(okc)){v.h.push(...take(pd));v.called=false;m+=` · ${v.n} бере ${pd}`;pd=0;t=nxt(t)}}
   else if(skip)t=nxt(t);
   msgT=m;cur=t;push();
   setTimeout(turn,1000);
+}
+function forceDraw(pi){
+  const v=P[pi];v.h.push(...take(pd));v.called=false;msgT=v.n+' бере '+pd;pd=0;busy=true;hap();push();
+  setTimeout(()=>{cur=nxt(pi);turn()},900);
 }
 function handle(pi,a){
   if(over!=null||!P)return;
@@ -374,11 +392,13 @@ function handle(pi,a){
     return;
   }
   if(pi!==cur||busy)return;
+  p.miss=0;
   if(a.t==='play'){
     const c=p.h[a.i];
-    if(!c||!ok(c)||(drawn&&a.i!==p.h.length-1))return;
+    if(!c||!okc(c)||(drawn&&a.i!==p.h.length-1))return;
     act(pi,a.i,COL.includes(a.c)?a.c:pickColorFor(p));
   }else if(a.t==='draw'){
+    if(pd>0)return forceDraw(pi);
     if(drawn)return;
     const c=take(1);
     if(!c.length){busy=true;cur=nxt(pi);return turn()}
@@ -394,11 +414,11 @@ function handle(pi,a){
 /* ---------- ІНТЕРФЕЙС ---------- */
 function cardH(c,cls=''){
   const s=SYM[c.v]||c.v;
-  return `<div class="card ${c.c} ${cls}"><i class="x t"></i><b class="k">${s}</b><span class="m">${s}</span><b class="k e">${s}</b><i class="x bt"></i></div>`;
+  return `<div class="card ${c.c} ${cls}"><i class="x t"></i><b class="k">${s}</b><span class="m">${s}</span><b class="k e">${s}</b>${c.c!=='w'?`<em class="cb">${GL[c.c]}</em>`:''}<i class="x bt"></i></div>`;
 }
 function render(v){
   const pv=lastV&&!(lastV.over&&!v.over)?lastV:null;
-  lastV=v;
+  lastV=v;v.rt=Date.now();
   let o='';
   for(let k=1;k<v.P.length;k++){
     const j=(v.me+k)%v.P.length,q=v.P[j];
@@ -487,6 +507,7 @@ function chatUI(){
   const on=role!=='solo'&&(!$('lobby').hidden||playing);
   $('cbtn').hidden=!on;
   if(!on)$('chat').hidden=true;
+  if(tg&&tg.BackButton){$('setup').hidden?tg.BackButton.show():tg.BackButton.hide()}
 }
 function drawChat(){
   const l=$('clog');
@@ -542,7 +563,7 @@ function showProf(q){
   if(!q)return;
   $('pav').innerHTML=avH(q,'big');$('pn').textContent=q.n;
   $('pu').textContent=q.bot?'🤖 Бот':q.u?'@'+q.u:'Telegram-нік не вказано';
-  $('ps').textContent=q.bot?'':'Ігор: '+(q.g||0)+' · Перемог: '+(q.w||0);
+  $('ps').innerHTML=q.bot?'':rankH(q);
   $('ptg').hidden=!q.u;
   $('ptg').onclick=()=>{const l='https://t.me/'+q.u;if(tg&&tg.openTelegramLink)tg.openTelegramLink(l);else window.open(l,'_blank')};
   $('prof').hidden=false;
@@ -579,9 +600,14 @@ $('mk').onclick=()=>{$('nerr').textContent='Створюю кімнату…';mk
 
 function hostData(c,d){
   if(d.t==='join'){
-    if(playing){c.send({t:'err',m:'Гра вже почалась'});return}
+    const k=String(d.k||'').slice(0,20);
+    if(playing){
+      const p=P&&P.find(x=>x.hum&&x.bot&&k&&x.key===k);
+      if(!p){c.send({t:'err',m:'Гра вже почалась'});return}
+      p.bot=0;p.conn=c;p.miss=0;R.push({...san(d),n:p.n,conn:c,key:k});msgT=p.n+' повернувся';push();return;
+    }
     if(R.length>=4){c.send({t:'err',m:'Кімната заповнена'});return}
-    R.push({...san(d),conn:c});
+    R.push({...san(d),conn:c,key:k});
     lb=Math.min(lb,4-R.length);lobbyPush();
   }else if(d.t==='chat')chatIn(c,d.m);
   else if(d.t==='a'&&P){
@@ -592,7 +618,7 @@ function hostData(c,d){
 function lobbyPush(){
   if(R.length>1)aloneSince=0;else if(!aloneSince)aloneSince=Date.now();
   if(role==='host')pubRoom();
-  const d={t:'lobby',code,list:R.map(r=>({n:r.n,a:r.a,ph:r.ph,u:r.u,g:r.g,w:r.w})),nb:lb};
+  const d={t:'lobby',code,list:R.map(r=>({n:r.n,a:r.a,ph:r.ph,u:r.u,g:r.g,w:r.w})),nb:lb,md:mode};
   R.forEach(r=>{if(r.conn&&r.conn.open)r.conn.send(d)});
   renderLobby(d);
 }
@@ -602,6 +628,8 @@ function renderLobby(d){
   $('code').textContent=d.code;
   $('plist').innerHTML=d.list.map((q,i)=>`<div class="pl" data-i="${i}">${avH(q)}<b>${esc(q.n)}${i===0?' <span class="tag">👑 хост</span>':''}</b>${role==='host'&&i>0?'<button class="kick">✕</button>':''}</div>`).join('')+(d.nb?`<div class="pl" style="cursor:default"><div class="avc">🤖</div><b>Ботів: ${d.nb}</b></div>`:'');
   $('nb').textContent=d.nb;
+  $('mdb').textContent='Режим: '+MODES[d.md|0];
+  $('guestw').textContent='Режим: '+MODES[d.md|0]+'. Чекаємо, поки хост почне гру…';
   $('hostc').hidden=role!=='host';
   $('guestw').hidden=role==='host';
   $('idle').hidden=!(role==='host'&&d.list.length===1);
@@ -686,15 +714,15 @@ function joinRoom(cd){
   peer=new Peer();
   peer.on('open',()=>{
     conn=peer.connect('unoua-'+cd,{reliable:true});
-    conn.on('open',()=>conn.send({t:'join',...me()}));
+    conn.on('open',()=>conn.send({t:'join',...me(),k:KEY}));
     conn.on('data',guestData);
-    conn.on('close',()=>{if(role==='guest')netErr('Зʼєднання з хостом втрачено')});
+    conn.on('close',()=>{if(role!=='guest')return;if(playing&&rc2<5){rc2++;$('msg').textContent='Відновлюю зʼєднання… ('+rc2+')';setTimeout(()=>{try{peer.destroy()}catch(e){};const cd=code;role='solo';joinRoom(cd)},2500)}else netErr('Зʼєднання з хостом втрачено')});
   });
   peer.on('error',e=>netErr(e.type==='peer-unavailable'?'Кімнату не знайдено':'Помилка мережі: '+e.type));
 }
 function guestData(d){
   if(d.t==='lobby')renderLobby(d);
-  else if(d.t==='v'){$('lobby').hidden=true;$('net').hidden=true;playing=true;render(d.v)}
+  else if(d.t==='v'){$('lobby').hidden=true;$('net').hidden=true;playing=true;rc2=0;render(d.v)}
   else if(d.t==='err')netErr(d.m);
   else if(d.t==='kick')netErr('Тебе видалено з кімнати');
   else if(d.t==='chat')addChat(d);
@@ -705,6 +733,42 @@ $('jn').onclick=()=>{
   $('nerr').textContent='Підключаюсь…';joinRoom(c);
 };
 
+
+/* ---------- ТАЙМЕР, РАНГИ, СКІНИ, ЛЕГКІ НАЛАШТУВАННЯ ---------- */
+const KEY=(()=>{try{let k=localStorage.getItem('unokey');if(!k){k=Math.random().toString(36).slice(2,12);localStorage.setItem('unokey',k)}return k}catch(e){return Math.random().toString(36).slice(2,12)}})();
+function rankH(q){
+  const w=q.w||0,g=q.g||0,r=w>=50?'Отаман':w>=20?'Козак':w>=5?'Боєць':'Новачок';
+  const b=[w>=1&&'🥉',w>=10&&'🥈',w>=50&&'🥇',g>=25&&'🎮',g>=100&&'💯'].filter(Boolean).join(' ');
+  return `🎖 ${r}<br>Ігор: ${g} · Перемог: ${w}<br>${b||'Нагород ще немає'}`;
+}
+setInterval(()=>{
+  if(!playing||over!=null||busy||role!=='host'||!P||!deadline||Date.now()<deadline)return;
+  const p=P[cur];if(!p||p.bot)return;
+  deadline=0;p.miss=(p.miss||0)+1;
+  if(p.miss>=2){p.bot=1;msgT=p.n+' неактивний — грає бот';turn();return}
+  msgT=p.n+': час вийшов';
+  if(pd>0)return forceDraw(cur);
+  const c=take(1);if(c.length){p.h.push(c[0]);p.called=false}
+  busy=true;push();setTimeout(()=>{cur=nxt(cur);turn()},700);
+},1000);
+setInterval(()=>{
+  const v=lastV;if(!v||v.over)return;
+  const l=v.tl?Math.ceil((v.tl-(Date.now()-v.rt))/1000):0;
+  $('turn').textContent=(v.cur===v.me?'Твій хід':'Ходить '+v.P[v.cur].n)+(l>0&&v.cur===v.me?' ⏱'+l:'');
+},500);
+document.querySelectorAll('.bb2[data-l],.bb2[data-m]').forEach(b=>b.onclick=()=>{
+  b.parentNode.querySelectorAll('.bb2').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  if(b.dataset.l!==undefined)lvl=+b.dataset.l;else mode=+b.dataset.m;
+});
+$('mdb').onclick=()=>{mode=(mode+1)%3;lobbyPush()};
+let sk=0,cbm=false;
+try{sk=+localStorage.getItem('unosk')||0;cbm=localStorage.getItem('unocb')==='1'}catch(e){}
+const applyLook=()=>{document.body.dataset.sk=sk;document.body.classList.toggle('cbm',cbm);$('cbb').classList.toggle('on',cbm)};
+applyLook();
+$('skb').onclick=()=>{sk=(sk+1)%4;try{localStorage.setItem('unosk',sk)}catch(e){}applyLook()};
+$('cbb').onclick=()=>{cbm=!cbm;try{localStorage.setItem('unocb',cbm?'1':'0')}catch(e){}applyLook()};
+if(tg&&tg.BackButton)tg.BackButton.onClick(()=>leave());
+try{if(!localStorage.getItem('unotut')){localStorage.setItem('unotut','1');$('rules').hidden=false}}catch(e){}
 </script>
 </body>
 </html>
